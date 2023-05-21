@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+*.x
+
+# text data file
+*.dat
+
+#Cmake
+Makefile
