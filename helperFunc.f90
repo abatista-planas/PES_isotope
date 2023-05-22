@@ -1042,11 +1042,11 @@ module helperFunc
         Integer :: ifun_temp,Xdim_file
         integer :: initflag
         save initflag
-        character(len=25) :: i0Type ! it defines what EulerAngle_to_FinalInternal0 has to be defined 
+        character(len=25) :: i0Type ! it defines Internal0 coodinate systemhas to be defined 
         data initflag /1/
         save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file,i0Type
         
-        ! i0Type options: 
+        ! i0Type options: "BiSpherical","AutoSurf"
         
       
         IF(initflag==1)THEN! initialize 
