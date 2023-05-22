@@ -2,12 +2,12 @@ module helperFunc
   
     contains
 
-    SUBROUTINE Read_File(filename,mass,mass0,natom1,natom2,ref1,ref2,XDIM)
+    SUBROUTINE Read_File(filename,mass,mass0,natom1,natom2,ref1,ref2,XDIM,i0Type)
       IMPLICIT NONE
       integer,INTENT(INOUT) :: natom1,natom2,XDIM
       real*8, allocatable,INTENT(INOUT) :: ref1(:),ref2(:),mass0(:),mass(:)
       integer :: natom,i,k
-    
+      character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output [options: "BiSpherical","AutoSurf"]
     
      
       character(*),INTENT(IN)::filename
@@ -17,9 +17,12 @@ module helperFunc
       read(10,*) XDIM
       read(10,*) natom1! number of atoms in fragment1
       read(10,*) natom2! number of atoms in fragment2
-    
-    
+
       natom=natom1+natom2 ! total number of atoms
+    
+      read(10,*) i0Type! Internal0 coodinate system in the output [options: "BiSpherical","AutoSurf"]
+
+      
     
       allocate(ref1(3*natom1),ref2(3*natom2),mass0(natom),mass(natom))
     
@@ -1042,7 +1045,7 @@ module helperFunc
         Integer :: ifun_temp,Xdim_file
         integer :: initflag
         save initflag
-        character(len=25) :: i0Type ! it defines Internal0 coodinate systemhas to be defined 
+        character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output
         data initflag /1/
         save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file,i0Type
         
