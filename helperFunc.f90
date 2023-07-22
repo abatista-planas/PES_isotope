@@ -7,7 +7,7 @@ module helperFunc
       integer,INTENT(INOUT) :: natom1,natom2,XDIM
       real*8, allocatable,INTENT(INOUT) :: ref1(:),ref2(:),mass0(:),mass(:)
       integer :: natom,i,k
-      character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output [options: "BiSpherical","AutoSurf"]
+      character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output [options: "BiSpherical","Autosurf"]
     
      
       character(*),INTENT(IN)::filename
@@ -20,7 +20,7 @@ module helperFunc
 
       natom=natom1+natom2 ! total number of atoms
     
-      read(10,*) i0Type! Internal0 coodinate system in the output [options: "BiSpherical","AutoSurf"]
+      read(10,*) i0Type! Internal0 coodinate system in the output [options: "BiSpherical","Autosurf"]
 
       
     
@@ -614,7 +614,7 @@ module helperFunc
     end subroutine EulerAngles_2_BiSpherical
 
 
-    subroutine EulerAngles_2_AutoSurf(inter,XDIM,R,a1,b1,g1,a2,b2,g2,internal0)
+    subroutine EulerAngles_2_Autosurf(inter,XDIM,R,a1,b1,g1,a2,b2,g2,internal0)
       IMPLICIT NONE
       Integer,INTENT(IN)::XDIM
       real*8,INTENT(IN):: R,a1,b1,g1,a2,b2,g2,inter(XDIM)
@@ -684,7 +684,7 @@ module helperFunc
     
   
       return
-      end subroutine EulerAngles_2_AutoSurf
+      end subroutine EulerAngles_2_Autosurf
   
   
   
@@ -1001,7 +1001,7 @@ module helperFunc
      
   
        if (inter0_Sys=="Autosurf")Then
-        call EulerAngles_2_AutoSurf(inter,XDIM,inter0(1),alpha1,beta1,gamma1,alpha2,beta2,gamma2,inter0)
+        call EulerAngles_2_Autosurf(inter,XDIM,inter0(1),alpha1,beta1,gamma1,alpha2,beta2,gamma2,inter0)
        elseif (inter0_Sys=="BiSpherical")Then
         call EulerAngles_2_BiSpherical(inter,inter0(1),alpha1,beta1,gamma1,alpha2,beta2,gamma2,inter0)
        end if
@@ -1017,7 +1017,7 @@ module helperFunc
        ! cartesian configurations   and print the sum of abs(d1-d0)
    
        if(doTest>0)then
-              call EulerAngles_2_AutoSurf(inter,XDIM,inter0(1),alpha1,beta1,gamma1,alpha2,beta2,gamma2,inter0_test)
+              call EulerAngles_2_Autosurf(inter,XDIM,inter0(1),alpha1,beta1,gamma1,alpha2,beta2,gamma2,inter0_test)
               call  MolecularDistanceTest(test_cart_f,cart_ref1,cart_ref2,natom1,natom2,inter0_test,XDIM,distance_arr_test)
               td(1:2) = distance_arr_test
               call  MolecularDistanceTest(test_cart_i,cart_ref1,cart_ref2,natom1,natom2,inter0_test,XDIM,distance_arr_test)
@@ -1049,7 +1049,7 @@ module helperFunc
         data initflag /1/
         save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file,i0Type
         
-        ! i0Type options: "BiSpherical","AutoSurf"
+        ! i0Type options: "BiSpherical","Autosurf"
         
       
         IF(initflag==1)THEN! initialize 
