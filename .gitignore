@@ -35,5 +35,4 @@
 # text data file
 *.dat
 
-#Cmake
-Makefile
+
