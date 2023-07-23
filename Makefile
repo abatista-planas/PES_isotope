@@ -4,14 +4,14 @@ F90 = gfortran # compile with gfortran
 
 CMPLFLG = -c -O3 -fbacktrace
 
-OBJS = Int_to_Cart_User.o Int_to_Cart.o main.o SUBROUTINES_F77.o helperFunc.o
+OBJS = main.o helperFunc.o Int_to_Cart_User.o Int_to_Cart.o  SUBROUTINES_F77.o 
 
-OBJS_Test = testing_H2O_HCN_.o isotopologues_v3.o SUBROUTINES_F77.o TestingSubroutines.o helperFunc.o Int_to_Cart.o Int_to_Cart_User.o
+OBJS_Test = testing.o helperFunc.o Int_to_Cart_User.o Int_to_Cart.o  SUBROUTINES_F77.o 
 
 all : $(OBJS)
 	$(F90) $(OBJS) -o ejec.x
-#	rm *.o 
-#	rm *.mod 
+	rm *.o 
+	rm *.mod 
 
 develop-test: $(OBJS)
 	$(F90) $(OBJS) -o ejec.x

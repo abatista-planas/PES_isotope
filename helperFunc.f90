@@ -846,8 +846,9 @@ module helperFunc
       RETURN
     end subroutine  rotmol2
 
-    SUBROUTINE convert_isotopic_coordinates(inter,inter0,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM,iFun,t_dist,doTest,inter0_Sys)
-        use helperFunc
+    SUBROUTINE convert_isotopic_coordinates(inter,inter0,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM &
+                                            ,iFun,t_dist,doTest,inter0_Sys)
+       
         IMPLICIT NONE
   
         integer,INTENT(IN) :: natom1,natom2,XDIM
@@ -1031,8 +1032,88 @@ module helperFunc
   
     END SUBROUTINE convert_isotopic_coordinates
 
-    SUBROUTINE Get_ISOTOP_COORDINATES(internal,internal0,XDIM,ifun,filePath)
+
+    SUBROUTINE Cart_to_Euler(cart,natom,ref1_0,t_dist,doTest)
         use helperFunc
+        IMPLICIT NONE
+
+        !cart and ref1_0 must have the same origin
+  
+        integer,INTENT(IN) :: natom
+        real*8,INTENT(IN) ::  ref1_0(natom*3),cart(natom*3)
+        real*8 :: ref1_temp0(natom*3),mass0
+        real*8 :: ref1(natom*3),cart_ref1(3,natom)
+        real*8 :: cart_mat(3,natom)
+        real*8 :: gamma1,beta1,alpha1,pii
+        real*8 :: test_cart_i(3,natom),test_cart_f(3,natom),distance_arr_test(2),td(5),eps
+        real*8,INTENT(OUT) :: t_dist(5)
+        integer,INTENT(IN) ::doTest ! doTest = -1 will not do the distance test, any other value will 
+  
+
+        pii=dacos(-1d0) 
+
+        td = 0
+        ! make temporary copies of the input data
+        ref1_temp0=ref1_0! reference vector for frag1 (original frame)
+        ref2_temp0=ref2_0! reference vector for frag2 (original frame)
+
+        eps = 1d-8
+
+          !Check the same origin
+
+          sum_norms = 0d0
+          do i=1,natom
+            sum_norms_ref0 = sum_norms_ref0 + Norm2(ref1_0(1+(i-1)*3:i*3))
+            sum_norms_cart = sum_norms_cart + Norm2(cart(1+(i-1)*3:i*3))
+          end do
+
+        if (dabs(sum_norms_ref0-sum_norms_cart) < eps)then
+
+                !!! 1) find the Cartesian coordinates of all atoms in the NEW frame of 
+                !!!    reference (origin at the new_CM of frag. 1)
+            
+                ! subroutine INT_Cart (convert: Internal coordinates --> Cartesian coordinates)  INT_Cart(internal,cart)
+                  ref1=ref1_temp0
+                  ref2=ref2_temp0
+                
+            
+
+            
+                ! transform back matrix "cart_mat[1:3,1:natom]" into a vector: "cart[1:3*natom]"
+                call mat_to_vec2(cart_mat,cart,natom1+natom2)! Now "cart" is in the proper/original Frame: where the 
+                ! PES was initially fitted, with its origin at the CM of frag1 and the Z-axis containing both CMs
+            
+                call vec_to_mat2(cart,test_cart_f,natom) ! testing 
+                !call Print_Vector(test_cart_f,natom,"test_cart_f")
+            
+            
+                !!! ----------------------------------------------------------------------------------
+                !!! 4) once the geometry is in the proper frame, find the corresponding Euler angles:
+                !!! ----------------------------------------------------------------------------------
+            
+                ! Fragment 1 
+                ! -----------
+                ! transform vector "ref1_temp0[1:3*natom1]" (original reference for frag1) into a matrix: "cart_ref1[1:3,1:natom1]"
+                call vec_to_mat2(ref1_temp0,cart_ref1,natom1)
+                ! find rotation matrix (U_rot) that transforms (rotates) coordinates "cart_ref2" into "cart_mat2"
+            
+            
+                mass0 =1d0
+                call Find_EulerAngles(natom1,cart_ref1,cart_mat,mass0,alpha1, beta1,gamma1)
+            
+              
+        else
+              gamma1 = 0d0
+              beta1  = 0d0
+              alpha1 = =0d0
+          write(*,*)"The data input does not have the same origin as the reference"
+        end if
+
+    END SUBROUTINE Cart_to_Euler
+
+
+    SUBROUTINE Get_ISOTOP_COORDINATES(internal,internal0,XDIM,ifun,filePath)
+     
       
         IMPLICIT NONE
         integer,INTENT(IN) :: XDIM,ifun
@@ -1049,7 +1130,7 @@ module helperFunc
         data initflag /1/
         save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file,i0Type
         
-        ! i0Type options: "BiSpherical","Autosurf"
+        ! i0Type options: "BiSpherical","Autosurf","Cartesian"
         
       
         IF(initflag==1)THEN! initialize 
@@ -1061,7 +1142,8 @@ module helperFunc
         ifun_temp =ifun
       
       
-       Call convert_isotopic_coordinates(internal,internal0,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM,ifun_temp,td,-1,i0Type)
+       Call convert_isotopic_coordinates(internal,internal0,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM,&
+                                          ifun_temp,td,-1,i0Type)
       
       
       
