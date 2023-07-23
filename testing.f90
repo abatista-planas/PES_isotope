@@ -17,34 +17,38 @@ PROGRAM TESTING
 
  test_number=100000000
  
+  write(*,*)
+  write(*,*)"Hello this is a test"
 
- XDIM = 5
+ call Test_Cart_to_Euler()
+
+!  XDIM = 5
 
 
- ALLOCATE(CasesRand(XDIM,test_number + 5000))
+!  ALLOCATE(CasesRand(XDIM,test_number + 5000))
  
  
 
- call random_seed()
- call random_number(CasesRand)
+!  call random_seed()
+!  call random_number(CasesRand)
 
  
 
 
  
- Write(*,*)DACOS(1d0 - 1d-16),datan2(1d-16,1d0)
+!  Write(*,*)DACOS(1d0 - 1d-16),datan2(1d-16,1d0)
 
- Call Same_Masses_Test(CasesRand,XDIM,test_number,counterCase,test_failed,maxerr)
+!  Call Same_Masses_Test(CasesRand,XDIM,test_number,counterCase,test_failed,maxerr)
 
 
 
-        write(*,*)
-        write(*,*)"TEST NAME: Same Masses same angle conversion"
-        write(*,*)"Int2Cart = ",0
-        write(*,*)"Number of Tests", counterCase
-        write(*,*)"MAX err_test",maxerr
-        write(*,*)"Failed Tests: ", test_failed, " out of",test_number 
-        write(*,*)
+!         write(*,*)
+!         write(*,*)"TEST NAME: Same Masses same angle conversion"
+!         write(*,*)"Int2Cart = ",0
+!         write(*,*)"Number of Tests", counterCase
+!         write(*,*)"MAX err_test",maxerr
+!         write(*,*)"Failed Tests: ", test_failed, " out of",test_number 
+!         write(*,*)
         
 
    
@@ -63,106 +67,150 @@ END PROGRAM TESTING
 
 
 
-
-
-
-
-SUBROUTINE Same_Masses_Test(CasesRand,XDIM,test_number,counterCase,test_failed,maxerr)
-  use helperFunc
+SUBROUTINE Test_Cart_to_Euler()
   IMPLICIT NONE
+  real*8:: internal(6),internal0(6)
+  real*8::pii,cart(18),energies(4)
+  integer::natoms,i
+  character(len=1)::Atom_label
   
-  Integer,INTENT(IN) ::test_number,XDIM
-  integer :: nc
-  real*8 ::internal(XDIM),internal0(XDIM),internal0_BiSph(XDIM)
- 
-  real*8 :: pii,passingThrough
-  real*8,INTENT(IN) :: CasesRand(XDIM,test_number+5000)
-  real*8 :: Max_test_dist,test_dist(5),err
-  real*8::err_test,threshold
-  integer,INTENT(INOUT) ::counterCase,test_failed
-  real*8,INTENT(INOUT):: maxerr
-  pii=dacos(-1d0) 
-  err = 1d-7
-  counterCase = 0
-  maxerr = 0d0
-  !threshold = 1d0 - 1d-12
-  nc = 0
+  
+  
+  open(unit=100,file="2b.xyz",status='old',action='read')
+  open(unit=200,file="coord_H2O_Dymer.txt",status='old',action='write')
+  open(unit=300,file="coord_H2O_Dymer_filtered.txt",status='old',action='write')
+  
+  
+       do i=1,42508
+       
+          read(100,*)natoms
+          read(100,*)energies(1:4)
+          read(100,*)Atom_label,cart(1:3)
+          read(100,*)Atom_label,cart(4:6)
+          read(100,*)Atom_label,cart(7:9)
+          read(100,*)Atom_label,cart(10:12)
+          read(100,*)Atom_label,cart(13:15)
+          read(100,*)Atom_label,cart(16:18)
+          
+    
+      
+          Call Get_ISOTOP_COORDINATES(cart,internal0,6,'./input.dat')
+          
+          write(200, *) i , internal0, energies(2)
+          if (internal0(1)>5) then 
+           write(300, *) i , internal0, energies(2)
+          
+          endif
+      enddo
+      
+      
+      
+   close(100)
+   close(200)
+   close(300)
 
-  test_failed = 0
-  Max_test_dist = 0
+SUBROUTINE Test_Cart_to_Euler
+
+
+
+
+
+! SUBROUTINE Same_Masses_Test(CasesRand,XDIM,test_number,counterCase,test_failed,maxerr)
+!   use helperFunc
+!   IMPLICIT NONE
+  
+!   Integer,INTENT(IN) ::test_number,XDIM
+!   integer :: nc
+!   real*8 ::internal(XDIM),internal0(XDIM),internal0_BiSph(XDIM)
+ 
+!   real*8 :: pii,passingThrough
+!   real*8,INTENT(IN) :: CasesRand(XDIM,test_number+5000)
+!   real*8 :: Max_test_dist,test_dist(5),err
+!   real*8::err_test,threshold
+!   integer,INTENT(INOUT) ::counterCase,test_failed
+!   real*8,INTENT(INOUT):: maxerr
+!   pii=dacos(-1d0) 
+!   err = 1d-7
+!   counterCase = 0
+!   maxerr = 0d0
+!   !threshold = 1d0 - 1d-12
+!   nc = 0
+
+!   test_failed = 0
+!   Max_test_dist = 0
   
   
   
   
-  do while (counterCase < test_number)
+!   do while (counterCase < test_number)
          
-    nc=nc+1
+!     nc=nc+1
    
     
   
-    internal(1) = CasesRand(1,nc)*10d0+5d0
-    internal(2) = CasesRand(2,nc)*pii
-    internal(3) = CasesRand(3,nc)*pii      
-    internal(4) = CasesRand(4,nc)*2d0*pii
-    internal(5) = CasesRand(5,nc)*2d0*pii 
+!     internal(1) = CasesRand(1,nc)*10d0+5d0
+!     internal(2) = CasesRand(2,nc)*pii
+!     internal(3) = CasesRand(3,nc)*pii      
+!     internal(4) = CasesRand(4,nc)*2d0*pii
+!     internal(5) = CasesRand(5,nc)*2d0*pii 
   
-    if (internal(4) > pii)then
-      internal(4) = internal(4) -  2d0*pii 
-    end if 
-    if (internal(4) < -pii)then
-      internal(4) = internal(4) + 2d0*pii 
-    end if 
-    if (internal(5) > pii)then
-      internal(5) = internal(5) -  2d0*pii 
-    end if 
-    if (internal(5) < -pii)then
-      internal(5) = internal(5) + 2d0*pii 
-    end if
+!     if (internal(4) > pii)then
+!       internal(4) = internal(4) -  2d0*pii 
+!     end if 
+!     if (internal(4) < -pii)then
+!       internal(4) = internal(4) + 2d0*pii 
+!     end if 
+!     if (internal(5) > pii)then
+!       internal(5) = internal(5) -  2d0*pii 
+!     end if 
+!     if (internal(5) < -pii)then
+!       internal(5) = internal(5) + 2d0*pii 
+!     end if
   
-    Call Get_ISOTOP_COORDINATES(internal,internal0,XDIM,'./input_tSM.dat')
+!     Call Get_ISOTOP_COORDINATES(internal,internal0,XDIM,'./input_tSM.dat')
    
 
   
-    counterCase = counterCase + 1
-                internal0_BiSph = internal0
+!     counterCase = counterCase + 1
+!                 internal0_BiSph = internal0
   
-                err_test = sum(DABS(internal0_BiSph -internal))
+!                 err_test = sum(DABS(internal0_BiSph -internal))
                 
-                if (maxerr < err_test ) then 
-                  maxerr = err_test 
-                endif
+!                 if (maxerr < err_test ) then 
+!                   maxerr = err_test 
+!                 endif
                 
-                if (err_test > err)Then
-                  test_failed = test_failed + 1
-                  write(*,*)
-                  write(*,*)"Internal           ", internal
-                  write(*,*)"Internal 0 BiSph   ", internal0_BiSph
-                  write(*,*)
-                  write(*,*)"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",'\n'
-                  write(*,*)
+!                 if (err_test > err)Then
+!                   test_failed = test_failed + 1
+!                   write(*,*)
+!                   write(*,*)"Internal           ", internal
+!                   write(*,*)"Internal 0 BiSph   ", internal0_BiSph
+!                   write(*,*)
+!                   write(*,*)"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",'\n'
+!                   write(*,*)
                
-                  write (*,*)"R_test" , internal0_BiSph(1) ,internal(1) 
-                  write (*,*) "Error R",DABS(internal0_BiSph(1) -internal(1))
-                  write (*,*)"----------------------------------------------"
-                  write (*,*)"Theta1_Test" , internal0_BiSph(2) ,internal(2) 
-                  write (*,*) "Error Theta1",DABS(internal0_BiSph(2) -internal(2))
-                  write (*,*)"----------------------------------------------"
-                  write (*,*)"Theta2_Test" , internal0_BiSph(3) ,internal(3) 
-                  write (*,*) "Error Theta2",DABS(internal0_BiSph(3) -internal(3))
-                  write (*,*)"----------------------------------------------"
-                  write (*,*)"Phi1_Test" , internal0_BiSph(4) ,internal(4) 
-                  write (*,*) "Error Phi1",DABS(internal0_BiSph(4) -internal(4))
-                  write (*,*)"----------------------------------------------"
-                  write (*,*)"Phi2_Test" , internal0_BiSph(5) ,internal(5) 
-                  write (*,*) "Error Phi2",DABS(internal0_BiSph(5) -internal(5))
-                  write (*,*)"----------------------------------------------"
-                end if 
+!                   write (*,*)"R_test" , internal0_BiSph(1) ,internal(1) 
+!                   write (*,*) "Error R",DABS(internal0_BiSph(1) -internal(1))
+!                   write (*,*)"----------------------------------------------"
+!                   write (*,*)"Theta1_Test" , internal0_BiSph(2) ,internal(2) 
+!                   write (*,*) "Error Theta1",DABS(internal0_BiSph(2) -internal(2))
+!                   write (*,*)"----------------------------------------------"
+!                   write (*,*)"Theta2_Test" , internal0_BiSph(3) ,internal(3) 
+!                   write (*,*) "Error Theta2",DABS(internal0_BiSph(3) -internal(3))
+!                   write (*,*)"----------------------------------------------"
+!                   write (*,*)"Phi1_Test" , internal0_BiSph(4) ,internal(4) 
+!                   write (*,*) "Error Phi1",DABS(internal0_BiSph(4) -internal(4))
+!                   write (*,*)"----------------------------------------------"
+!                   write (*,*)"Phi2_Test" , internal0_BiSph(5) ,internal(5) 
+!                   write (*,*) "Error Phi2",DABS(internal0_BiSph(5) -internal(5))
+!                   write (*,*)"----------------------------------------------"
+!                 end if 
         
   
   
-  end do
+!   end do
 
-END SUBROUTINE  Same_Masses_Test
+! END SUBROUTINE  Same_Masses_Test
 
 !
 !SUBROUTINE CosineLaw_Test(CasesRand,test_number,mass,mass0,natom1,natom2,ref1,ref2,XDIM,ifun,counterCase,test_failed,maxerr)
