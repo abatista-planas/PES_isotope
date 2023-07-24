@@ -4,6 +4,7 @@ module testingFunc
 
     SUBROUTINE MolecularDistanceTest(arr1,ref1,ref2,N1,N2,internal0,XDIM,Distance)
         use mathFunc
+        use coordinateTransf
         IMPLICIT NONE
         integer,INTENT(IN) ::  N1,N2,XDIM
         real*8,INTENT(IN) ::  internal0(XDIM),arr1(3,N1+N2),ref1(3,N1),ref2(3,N2)

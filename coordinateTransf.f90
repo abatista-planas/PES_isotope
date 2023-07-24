@@ -424,7 +424,7 @@ module coordinateTransf
             ! * the second angle beta  (rotation around Y axis) is given by cos_beta
             ! * the otehr two, alpha and gamma are given in radians
         !********************************************************
-          use helperFunc
+          use mathFunc
           IMPLICIT NONE
           integer,INTENT(IN) :: natom1,natom2,XDIM
           real*8,INTENT(IN) :: internal(XDIM),mass(natom1+natom2),ref1_0(natom1*3),ref2_0(natom2*3)
@@ -517,7 +517,7 @@ module coordinateTransf
     END SUBROUTINE Int_to_Cart_ZYZ
 
     SUBROUTINE Int_to_Cart_Spherical(internal,cart,mass,natom1,natom2,ref1_0)
-          use helperFunc
+          use mathFunc
           IMPLICIT NONE
           integer,INTENT(IN) :: natom1,natom2
           real*8,INTENT(IN) :: internal(3),mass(natom1+natom2),ref1_0(natom1*3)

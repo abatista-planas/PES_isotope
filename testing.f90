@@ -72,7 +72,7 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
   use mathFunc
   use coordinateTransf
   use helperFunc
-  
+
   IMPLICIT NONE
   character(*),INTENT(IN) :: systPath,dataPath
   real*8::pii,cart(18),energies(4),angles1(3),angles2(3)
