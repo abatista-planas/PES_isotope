@@ -54,7 +54,8 @@ module helperFunc
                                             ,iFun,t_dist,doTest,inter0_Sys)
        
         use mathFunc
-        use coordTransf
+        use coordinateTransf
+        use testingFunc , only: MolecularDistanceTest
 
         IMPLICIT NONE
   
