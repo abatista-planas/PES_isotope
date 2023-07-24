@@ -4,9 +4,9 @@ F90 = gfortran # compile with gfortran
 
 CMPLFLG = -c -O3 -fbacktrace
 
-OBJS = main.o helperFunc.o Int_to_Cart_User.o Int_to_Cart.o  SUBROUTINES_F77.o 
+OBJS = main.o Int_to_Cart_User.o Int_to_Cart.o  SUBROUTINES_F77.o mathFunc.o coordinateTransf.o helperFunc.o
 
-OBJS_Test = testing.o helperFunc.o Int_to_Cart_User.o Int_to_Cart.o  SUBROUTINES_F77.o 
+OBJS_Test = testing.o  Int_to_Cart_User.o Int_to_Cart.o  SUBROUTINES_F77.o mathFunc.o coordinateTransf.o helperFunc.o
 
 all : $(OBJS)
 	$(F90) $(OBJS) -o ejec.x
