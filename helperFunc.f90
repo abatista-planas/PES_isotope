@@ -59,7 +59,7 @@ module helperFunc
 
         IMPLICIT NONE
   
-        integer,INTENT(IN) :: natom1,natom2,XDIM
+        integer,INTENT(IN) :: natom1,natom2,XDIM,interDim
         real*8,INTENT(IN) ::  inter(XDIM),mass(natom1+natom2),mass0(natom1+natom2),ref1_0(natom1*3),ref2_0(natom2*3)
         real*8,INTENT(OUT) :: inter0(XDIM)
         integer ::natom,intFunc
@@ -97,6 +97,8 @@ module helperFunc
    
   
         call Int_to_Cart(inter,mass,ref1,ref2,XDIM,natom1,natom2,intFunc,cart)
+
+        write(*,*) cart
   
   
   
@@ -205,7 +207,7 @@ module helperFunc
        ! *** internal coordinates ***
        ! ----------------------------
   
-       
+       write(*,*)alpha1, beta1,gamma1,alpha2, beta2,gamma2
   
      
   
@@ -258,7 +260,7 @@ module helperFunc
         data initflag /1/
         save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file,i0Type
         
-        ! i0Type options: "BiSpherical","Autosurf","Cartesian"
+        ! i0Type options: "BiSpherical","Autosurf"
         
       
         IF(initflag==1)THEN! initialize 
@@ -268,6 +270,8 @@ module helperFunc
       
         i0Type = trim(i0Type)
         ifun_temp =ifun
+
+        write(*,*)"i0Type",i0Type
       
       
        Call convert_isotopic_coordinates(internal,internal0,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM,&
