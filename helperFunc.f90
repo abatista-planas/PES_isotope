@@ -55,7 +55,7 @@ module helperFunc
        
         use mathFunc
         use coordTransf
-        
+
         IMPLICIT NONE
   
         integer,INTENT(IN) :: natom1,natom2,XDIM
@@ -71,7 +71,7 @@ module helperFunc
         real*8 :: test_cart_i(3,natom1+natom2),test_cart_f(3,natom1+natom2),distance_arr_test(2),td(5)
         real*8,INTENT(OUT) :: t_dist(5)
         integer,INTENT(IN) :: iFun,doTest ! doTest = -1 will not do the distance test, any other value will 
-        character(*) :: inter0_Sys ! it defines what EulerAngle_to_FinalInternal0 has to be defined 
+        character(*),INTENT(IN) :: inter0_Sys ! it defines what EulerAngle_to_FinalInternal0 has to be defined 
   
        pii=dacos(-1d0) 
        natom=natom1+natom2

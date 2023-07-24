@@ -1,5 +1,5 @@
 module coordinateTransf
-  
+    
     contains
 
 
@@ -380,159 +380,297 @@ module coordinateTransf
       return
     end subroutine EulerAngles_2_Autosurf
   
+    SUBROUTINE Int_to_Cart(internal,mass,ref1,ref2,XDIM,natom1,natom2,internalFunction,cart)
+          
+          IMPLICIT NONE
 
-    SUBROUTINE Cart_to_Euler(cart,natom,ref1_0,angles,doTest)
-     
-        IMPLICIT NONE
+          integer,INTENT(IN) :: natom1,natom2,XDIM,internalFunction
+          real*8,INTENT(IN) :: internal(XDIM),mass(natom1+natom2),ref1(natom1*3),ref2(natom2*3)
+          integer :: intfunc
+          real*8,INTENT(OUT)  :: cart((natom1+natom2)*3)
+          real*8::ref1_temp0(natom1*3),ref2_temp0(natom2*3),cart_temp((natom1+natom2)*3)
+          
+          intfunc = internalFunction
+          !************** Subroutine definition 
+              ! Place your custom function here! 
+          !********************************************************
+          ! make temporary copies of the input data
+          ref1_temp0 = ref1! reference vector for frag1 (original frame)
+          ref2_temp0 = ref2! reference vector for frag2 (original frame)
 
-        !cart and ref1_0 must have the same origin
-  
-        integer,INTENT(IN) :: natom
-        real*8,INTENT(IN) ::  ref1_0(natom*3),cart(natom*3)
-        real*8 :: ref1_temp0(natom*3),mass0(natom)
-        real*8 :: ref1(natom*3),cart_ref1(3,natom)
-        real*8 :: cart_mat(3,natom)
-        real*8 :: gamma1,beta1,alpha1,pii
-        real*8 :: eps,sum_norms_ref0,sum_norms_cart,norms(natom)
-        real*8,INTENT(INOUT) :: angles(3)
-        integer,INTENT(IN) ::doTest ! doTest = -1 will not do the distance test, any other value will 
-        integer::i
-  
+          if ( intfunc == 0)then
+              call Int_to_Cart_User(internal,mass,cart_temp)
+            elseif ( intfunc == 1)then
+            ! Only for 3D: (for CH3CN-He system: internal coordinates taken as spherical coords.)
+            call Int_to_Cart_Spherical(internal,cart_temp,mass,natom1,natom2,ref1_temp0)
+            elseif ( intfunc == 2)then
+            call Int_to_Cart_ZYZ(internal,XDIM,cart_temp,mass,natom1,natom2, ref1_temp0, ref2_temp0)
+            ! Only if internal is already in cartesian
+            elseif ( intfunc == -1)then
+                    cart_temp = internal 
+          endif
 
+          cart = cart_temp
+              
+    END SUBROUTINE Int_to_Cart
+
+    SUBROUTINE Int_to_Cart_ZYZ(internal,XDIM,cart,mass,natom1,natom2,ref1_0,ref2_0)
+
+        !************** Subroutine definition 
+            ! subroutine Int_to_Cart_ZYZ (convert: Internal coordinates in ZYZ--> Cartesian coordinates)  
+            ! This function considers local axis parallels to ref1_0 and ref2_0 (systems known by Autosurf) 
+            ! and global axis with origin in Center Mass of A with z-axis passing through Center Mass of B
+
+            ! * the second angle beta  (rotation around Y axis) is given by cos_beta
+            ! * the otehr two, alpha and gamma are given in radians
+        !********************************************************
+          use helperFunc
+          IMPLICIT NONE
+          integer,INTENT(IN) :: natom1,natom2,XDIM
+          real*8,INTENT(IN) :: internal(XDIM),mass(natom1+natom2),ref1_0(natom1*3),ref2_0(natom2*3)
+          real*8,INTENT(OUT)::cart((natom1+natom2)*3)
+          integer :: i,natom
+          real*8 :: cm(3)
+          real*8 :: ref1(natom1*3),rotarr1(3,natom1),ref_mat1(3,natom1),arr1(natom1*3)
+          real*8 :: ref2(natom2*3),rotarr2(3,natom2),R_arr(3,natom2),ref_mat2(3,natom2),arr2(natom2*3)
+          real*8 :: R,angles(6),internal_temp(XDIM)
+          
+          internal_temp=internal
+          natom=natom1+natom2
+          ref1=ref1_0
+          ref2=ref2_0
+
+          R = internal_temp(1)
+
+          if (XDIM==2)then
+              angles(1)=0d0
+              angles(2)=dacos(internal_temp(2))
+              angles(3)=0d0
+              angles(4)=0d0
+              angles(5)=0d0
+              angles(6)=0d0
+          elseif (XDIM==3)then
+              angles(1)=0d0
+              angles(2)=dacos(internal_temp(2))
+              angles(3)=internal_temp(3)
+              angles(4)=0d0
+              angles(5)=0d0
+              angles(6)=0d0
+          elseif (XDIM==4)then
+              angles(1)=internal_temp(4)
+              angles(2)=dacos(internal_temp(2))
+              angles(3)=0d0
+              angles(4)=0d0
+              angles(5)=dacos(internal_temp(3))
+              angles(6)=0d0     
+          elseif (XDIM==5)then
+              angles(1)=internal_temp(4)
+              angles(2)=dacos(internal_temp(2))
+              angles(3)=internal_temp(5)
+              angles(4)=0d0
+              angles(5)=dacos(internal_temp(3))
+              angles(6)=0d0 
+          elseif (XDIM==6)then
+              angles(1)=internal_temp(4)
+              angles(2)=dacos(internal_temp(2))
+              angles(3)=internal_temp(5)
+              angles(4)=0d0
+              angles(5)=dacos(internal_temp(3))
+              angles(6)=internal_temp(6)                                
+          endif
+
+          
+
+          !!! 1) find the Cartesian coordinates of all atoms in the NEW frame of 
+          !!!    reference (origin at the new_CM of frag. 1)
+          
+          
+          
+          ! set new CM of fragment 1 at the origin
+          call rm_cmass(ref1,mass(1:natom1),natom1,natom1) 
+          call rm_cmass(ref2,mass(natom1+1:natom1+natom2),natom2,natom2) 
+
+
+
+          call vec_to_mat2(ref1,ref_mat1,natom1)
+          call vec_to_mat2(ref2,ref_mat2,natom2)
+
+          call MolecularRotation_ZYZ(ref_mat1,natom1,angles(1),angles(2),angles(3),rotarr1)
+          call MolecularRotation_ZYZ(ref_mat2,natom2,angles(4),angles(5),angles(6),rotarr2)
+
+          
+
+          call mat_to_vec2(rotarr1,arr1,natom1)
+          R_arr(1:2,:) = rotarr2(1:2,:)
+          R_arr(3,:) = rotarr2(3,:)+R
+          call mat_to_vec2(R_arr,arr2,natom2)
+          
+
+          do i=1,3*natom1
+              cart(i)=arr1(i)! Cartesian coordinates for the atoms in fragment 1
+          enddo
+          do i=1,3*natom2
+              cart(3*natom1+i)=arr2(i)! Cartesian coordinates for the atoms in fragment 2
+          enddo
+
+        
+    END SUBROUTINE Int_to_Cart_ZYZ
+
+    SUBROUTINE Int_to_Cart_Spherical(internal,cart,mass,natom1,natom2,ref1_0)
+          use helperFunc
+          IMPLICIT NONE
+          integer,INTENT(IN) :: natom1,natom2
+          real*8,INTENT(IN) :: internal(3),mass(natom1+natom2),ref1_0(natom1*3)
+
+          integer :: i,natom
+          real*8 :: cm(3)
+          real*8 :: ref1(natom1*3)
+          real*8 :: ref2(natom2*3)
+          real*8 :: cart((natom1+natom2)*3)
+          real*8 :: sin_theta
+
+
+          natom=natom1+natom2
+          ref1=ref1_0
+
+          !!! 1) find the Cartesian coordinates of all atoms in the NEW frame of 
+          !!!    reference (origin at the new_CM of frag. 1)
+          
+          ! subroutine INT_Cart (convert: Internal coordinates --> Cartesian coordinates)  INT_Cart(internal,cart)
+          ! (for CH3CN-He system: internal coordinates taken as spherical coords.)
+
+          ! set new CM of fragment 1 at the origin
+          call rm_cmass(ref1,mass(1:natom1),natom1,natom1) 
+          do i=1,3*natom1
+          cart(i)=ref1(i)! Cartesian coordinates for the atoms in fragment 1
+          enddo
+          sin_theta=dsqrt(1.d0-internal(2)**2)
+          cm(1)=internal(1)*sin_theta*dcos(internal(3))
+          cm(2)=internal(1)*sin_theta*dsin(internal(3))
+          cm(3)=internal(1)*internal(2)
+          ref2=cm
+          do i=1,3
+          cart(3*natom1+i)=ref2(i)! Cartesian coordinates for the atoms in fragment 2
+          enddo
+
+
+
+
+    END SUBROUTINE Int_to_Cart_Spherical 
+
+    ! Int_to_Cart_User: Example for H2O-HCN
+    subroutine Int_to_Cart_User(internal,mass,cart)
+        implicit none
+        integer,parameter :: XDIM=5,natom1=3,natom2=3
+        real*8,parameter :: bohr2ang=0.529177249d0
+        real*8,INTENT(IN) :: internal(XDIM)
+        real*8,INTENT(IN) :: mass(natom1+natom2)
+        real*8,INTENT(OUT) :: cart((natom1+natom2)*3)
+        real*8 :: pii,rOH,thetaOH,Xcm,Ycm,Zcm,R,theta1,theta2,phi1,phi2
+        real*8 :: r1,r2,rH0,rC1,rN1
+        real*8 :: xO,yO,zO,xH1,yH1,zH1,xH2,yH2,zH2
+        real*8 :: xH0,yH0,zH0,xC1,yC1,zC1,xN1,yN1,zN1
+        real*8 :: mH1,mH2,mH3,mN,mO,mC,mtA,mtB
+        real*8 :: RCMx,RCMy,RCMz
+        
         pii=dacos(-1d0) 
 
-        ! make temporary copies of the input data
-        ref1_temp0=ref1_0! reference vector for frag1 (original frame)
+        ! Masses
+        ! -------------------
+        ! H2O
+        
+        mO = mass(1)!15.99491461956d0
+        mH1 = mass(2)!1.00782503207d0
+        mH2 = mass(3)!1.00782503207d0
+        ! HCN
+        mH3 = mass(4)!1.00782503207d0
+        mC = mass(5)!12.0d0
+        mN = mass(6)!14.0030740048d0
+        ! -------------------
+        mtA = mH1+mH2+mO
+        mtB = mN+mC+mH3
 
-        eps = 1d-8
+        ! H2O parameters
+        rOH=1.8361d0              ! in bohr
+        rOH=rOH*bohr2ang          ! convert to Ang.
+        thetaOH=104.69d0/2.0d0    ! degrees
+        thetaOH=thetaOH*pii/180d0 ! convert to radians
+        ! HCN parameters
+        r1=2.0286d0*bohr2ang      ! equilibre CH
+        r2=2.1874d0*bohr2ang      ! equilibre CN  
+        ! distance from each atom to the HCN center-of-mass
+        rH0=((r1+r2)*mN+r1*mC)/(mtB) 
+        rC1=(r2*mN - r1*mH3)/(mtB)
+        rN1=((r1+r2)*mH3 + r2*mC)/(mtB)
 
-          !Check the same origin
+        ! H2O Cartesian coordinates
+        ! ----------------------------
+        ! (H2O is fixed at the origin)
+        xO=0d0 
+        yO=0d0
+        zO=(mH1+mH2)*rOH*dcos(thetaOH)/(mtA)
+        xH1=-1d0*rOH*dsin(thetaOH)
+        yH1=0d0
+        zH1=zO-rOH*dcos(thetaOH)
+        xH2=rOH*dsin(thetaOH)
+        yH2=0d0
+        zH2=zH1
+        
+        RCMx = (mO*xO + xH1*mH1 + xH2*mH2)/mtA
+        RCMy = (mO*yO + yH1*mH1 + yH2*mH2)/mtA
+        RCMz = (mO*zO + zH1*mH1 + zH2*mH2)/mtA
+        
+        
+        cart(1)=xO  - RCMx
+        cart(2)=yO  - RCMy
+        cart(3)=zO  - RCMz
+        cart(4)=xH1 - RCMx
+        cart(5)=yH1 - RCMy
+        cart(6)=zH1 - RCMz
+        cart(7)=xH2 - RCMx
+        cart(8)=yH2 - RCMy
+        cart(9)=zH2 - RCMz
+        !write(6,*)cart(1:3)
+        !write(6,*)cart(4:6)
+        !write(6,*)cart(7:9)
+        
+        ! internal coordinates
+        R=internal(1)
+        theta1=internal(2)
+        theta2=internal(3)
+        phi1=internal(4)
+        phi2=internal(5)
 
-          sum_norms_ref0 = 0d0
-          sum_norms_cart = 0d0
-          do i=1,natom
-            sum_norms_ref0 = sum_norms_ref0 + Norm2(ref1_0(1+(i-1)*3:i*3))
-            sum_norms_cart = sum_norms_cart + Norm2(cart(1+(i-1)*3:i*3))
-            norms(i) = Norm2(ref1_0(1+(i-1)*3:i*3))-Norm2(cart(1+(i-1)*3:i*3))
+        ! HCN Cartesian coordinates
+        ! -------------------------
+        Xcm=R*dsin(theta1)*dcos(phi1) 
+        Ycm=R*dsin(theta1)*dsin(phi1) 
+        Zcm=R*dcos(theta1) 
+        xH0=Xcm-1.0d0*rH0*dsin(theta2)*dcos(phi2)
+        yH0=Ycm-1.0d0*rH0*dsin(theta2)*dsin(phi2) 
+        zH0=Zcm-1.0d0*rH0*dcos(theta2)
+        xC1=Xcm-1.0d0*rC1*dsin(theta2)*dcos(phi2)
+        yC1=Ycm-1.0d0*rC1*dsin(theta2)*dsin(phi2)
+        zC1=Zcm-1.0d0*rC1*dcos(theta2)
+        xN1=Xcm+1.0d0*rN1*dsin(theta2)*dcos(phi2)
+        yN1=Ycm+1.0d0*rN1*dsin(theta2)*dsin(phi2)
+        zN1=Zcm+1.0d0*rN1*dcos(theta2)
+        cart(10)=xH0
+        cart(11)=yH0
+        cart(12)=zH0
+        cart(13)=xC1
+        cart(14)=yC1
+        cart(15)=zC1
+        cart(16)=xN1
+        cart(17)=yN1
+        cart(18)=zN1
+        ! write(6,*)
+        ! write(6,*)cart(3*natom1+1:3*natom1+3*natom2)
+        !pause
 
-          
-          end do
+        return
 
-
-
-        if (sum(Dabs(norms)) < eps)then
-
-                !!! 1) find the Cartesian coordinates of all atoms in the NEW frame of 
-                !!!    reference (origin at the new_CM of frag. 1)
-            
-                ! subroutine INT_Cart (convert: Internal coordinates --> Cartesian coordinates)  INT_Cart(internal,cart)
-                  ref1=ref1_temp0
-                
-            
-
-            
-                ! transform back matrix "cart_mat[1:3,1:natom]" into a vector: "cart[1:3*natom]"
-                call mat_to_vec2(cart_mat,cart,natom)! Now "cart" is in the proper/original Frame: where the 
-                ! PES was initially fitted, with its origin at the CM of frag1 and the Z-axis containing both CMs
-            
-            
-                !!! ----------------------------------------------------------------------------------
-                !!! 4) once the geometry is in the proper frame, find the corresponding Euler angles:
-                !!! ----------------------------------------------------------------------------------
-            
-                ! Fragment 1 
-                ! -----------
-                ! transform vector "ref1_temp0[1:3*natom1]" (original reference for frag1) into a matrix: "cart_ref1[1:3,1:natom1]"
-                call vec_to_mat2(ref1_temp0,cart_ref1,natom)
-                ! find rotation matrix (U_rot) that transforms (rotates) coordinates "cart_ref2" into "cart_mat2"
-            
-            
-                mass0(1:natom) =1d0
-                call Find_EulerAngles(natom,cart_ref1,cart_mat,mass0,alpha1, beta1,gamma1)
-            
-              
-        else
-              gamma1 = 0d0
-              beta1  = 0d0
-              alpha1 = 0d0
-          write(*,*)"The data input does not have the same origin as the reference"
-        end if
-
-        angles(1) = alpha1
-        angles(2) = beta1
-        angles(3) = gamma1
-
-
-    END SUBROUTINE Cart_to_Euler
-
-    SUBROUTINE Cart_to_Autosurf(systPath,dataPath)
-
-      IMPLICIT NONE
-      character(*),INTENT(IN) :: systPath,dataPath
-      real*8::pii,cart(18),energies(4),angles1(3),angles2(3)
-      integer::natoms,i,Xdim,natom1,natom2
-      character(len=1)::Atom_label
-
-      real*8, allocatable :: ref1_0(:),ref2_0(:),mass(:),mass0(:),internal0(:)
-      integer :: initflag
-      save initflag
-      character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output
-      data initflag /1/
-      save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim,i0Type
-            
-            ! i0Type options: "BiSpherical","Autosurf","Cartesian"
-            
-          
-            IF(initflag==1)THEN! initialize 
-            Call Read_File(systPath,mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim,i0Type)
-            initflag=2  
-            ENDIF
-          
-            write(*,*) "Test_Cart_to_Euler"
-
-      ALLOCATE(internal0(Xdim)) 
-      
-      
-      open(unit=100,file=dataPath,status='old',action='read')
-      ! open(unit=200,file="coord_H2O_Dymer.txt",status='old',action='write')
-      ! open(unit=300,file="coord_H2O_Dymer_filtered.txt",status='old',action='write')
-      
-      
-          do i=1,42508
-          
-              read(100,*)natoms
-              read(100,*)energies(1:4)
-              read(100,*)Atom_label,cart(1:3)
-              read(100,*)Atom_label,cart(4:6)
-              read(100,*)Atom_label,cart(7:9)
-              read(100,*)Atom_label,cart(10:12)
-              read(100,*)Atom_label,cart(13:15)
-              read(100,*)Atom_label,cart(16:18)
-              
-              call Cart_to_Euler(cart(1:natom1*3),natom1,ref1_0,angles1,0)
-              call Cart_to_Euler(cart(1+natom1*3:natom2*3),natom2,ref1_0,angles2,0)
-              
-          
-              
-              call EulerAngles_2_Autosurf(Xdim,10,angles1(1),angles1(2),angles1(3)&
-                                          ,angles2(1),angles2(2),angles2(3),internal0)
-          
-              
-              ! write(200, *) i , internal0, energies(2)
-              ! if (internal0(1)>5) then 
-              !  write(300, *) i , internal0, energies(2)
-              
-              ! endif
-          enddo
-          
-          
-          
-        close(100)
-        !  close(200)
-        !  close(300)
-
-    End SUBROUTINE Cart_to_Autosurf
-
+    end subroutine Int_to_Cart_User
 
 end module coordinateTransf
     

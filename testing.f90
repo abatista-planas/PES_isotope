@@ -67,7 +67,63 @@ END PROGRAM TESTING
 
 
 
+SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
 
+  use mathFunc
+  use coordinateTransf
+  use helperFunc
+  
+  IMPLICIT NONE
+  character(*),INTENT(IN) :: systPath,dataPath
+  real*8::pii,cart(18),energies(4),angles1(3),angles2(3)
+  integer::natoms,i,Xdim,natom1,natom2
+  character(len=1)::Atom_label
+
+  real*8, allocatable :: ref1_0(:),ref2_0(:),mass(:),mass0(:),internal0(:)
+  integer :: initflag
+  save initflag
+  character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output
+  data initflag /1/
+  save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim,i0Type
+        
+        ! i0Type options: "BiSpherical","Autosurf","Cartesian"
+        
+      
+        IF(initflag==1)THEN! initialize 
+         Call Read_File(systPath,mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim,i0Type)
+         initflag=2  
+        ENDIF
+      
+        write(*,*) "Test_Cart_to_Euler"
+
+  ALLOCATE(internal0(Xdim)) 
+  
+  
+  open(unit=100,file=dataPath,status='old',action='read')
+  ! open(unit=200,file="coord_H2O_Dymer.txt",status='old',action='write')
+  ! open(unit=300,file="coord_H2O_Dymer_filtered.txt",status='old',action='write')
+  
+  
+       do i=1,42508
+       
+          read(100,*)natoms
+          read(100,*)energies(1:4)
+          read(100,*)Atom_label,cart(1:3)
+          read(100,*)Atom_label,cart(4:6)
+          read(100,*)Atom_label,cart(7:9)
+          read(100,*)Atom_label,cart(10:12)
+          read(100,*)Atom_label,cart(13:15)
+          read(100,*)Atom_label,cart(16:18)
+          
+      enddo
+      
+      
+      
+   close(100)
+  !  close(200)
+  !  close(300)
+
+End SUBROUTINE Test_Cart_to_Autosurf
 
 
 
