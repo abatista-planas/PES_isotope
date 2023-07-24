@@ -1,4 +1,4 @@
-module helperFunc
+module coordinateTransf
   
     contains
 
@@ -1226,5 +1226,5 @@ module helperFunc
       
     END SUBROUTINE Get_ISOTOP_COORDINATES
   
-end module helperFunc
+end module coordinateTransf
     

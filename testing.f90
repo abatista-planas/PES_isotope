@@ -1,6 +1,6 @@
 PROGRAM TESTING
- use helperFunc
 
+ 
  IMPLICIT NONE
  integer :: XDIM
 
@@ -20,7 +20,7 @@ PROGRAM TESTING
   write(*,*)
   write(*,*)"Hello this is a test"
 
- call Test_Cart_to_Euler()
+ call Test_Cart_to_Autosurf('input_H2O.dat',"2b.xyz")
 
 !  XDIM = 5
 
@@ -67,49 +67,7 @@ END PROGRAM TESTING
 
 
 
-SUBROUTINE Test_Cart_to_Euler()
-  IMPLICIT NONE
-  real*8:: internal(6),internal0(6)
-  real*8::pii,cart(18),energies(4)
-  integer::natoms,i
-  character(len=1)::Atom_label
-  
-  
-  
-  open(unit=100,file="2b.xyz",status='old',action='read')
-  open(unit=200,file="coord_H2O_Dymer.txt",status='old',action='write')
-  open(unit=300,file="coord_H2O_Dymer_filtered.txt",status='old',action='write')
-  
-  
-       do i=1,42508
-       
-          read(100,*)natoms
-          read(100,*)energies(1:4)
-          read(100,*)Atom_label,cart(1:3)
-          read(100,*)Atom_label,cart(4:6)
-          read(100,*)Atom_label,cart(7:9)
-          read(100,*)Atom_label,cart(10:12)
-          read(100,*)Atom_label,cart(13:15)
-          read(100,*)Atom_label,cart(16:18)
-          
-    
-      
-          Call Get_ISOTOP_COORDINATES(cart,internal0,6,'./input.dat')
-          
-          write(200, *) i , internal0, energies(2)
-          if (internal0(1)>5) then 
-           write(300, *) i , internal0, energies(2)
-          
-          endif
-      enddo
-      
-      
-      
-   close(100)
-   close(200)
-   close(300)
 
-SUBROUTINE Test_Cart_to_Euler
 
 
 
