@@ -53,6 +53,9 @@ module helperFunc
     SUBROUTINE convert_isotopic_coordinates(inter,inter0,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM &
                                             ,iFun,t_dist,doTest,inter0_Sys)
        
+        use mathFunc
+        use coordTransf
+        
         IMPLICIT NONE
   
         integer,INTENT(IN) :: natom1,natom2,XDIM
