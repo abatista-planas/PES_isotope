@@ -52,7 +52,7 @@ module helperFunc
     !input  is in cartesian
     !output is R and the 6 euler angles in ZYZ
 
-    SUBROUTINE convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM)
+    SUBROUTINE convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM,testCart)
        
         use mathFunc
         use coordinateTransf
@@ -63,6 +63,8 @@ module helperFunc
         real*8,INTENT(IN) ::  cart((natom1+natom2)*3),mass(natom1+natom2),mass0(natom1+natom2),&
                               ref1_0(natom1*3),ref2_0(natom2*3)!,inter(XDIM)
         real*8,INTENT(OUT) :: R_ZYZ(7)
+        real*8,optional :: testCart(6,natom1+natom2)
+
         integer ::natom!,intFunc
         real*8 :: ref1_temp0(natom1*3),ref2_temp0(natom2*3),cm(3)
         real*8 :: ref1(natom1*3),ref2(natom1*3),cart_ref1(3,natom1),cart_mat1(3,natom1)
@@ -71,6 +73,7 @@ module helperFunc
         real*8 :: U_rot(3,3)
         real*8 :: gamma1,gamma2,beta1,beta2,alpha1,alpha2,theta,phi,pii,cos_theta,sin_theta
 
+        real*8 :: test_cart_i(3,natom1+natom2),test_cart_f(3,natom1+natom2)
   
        pii=dacos(-1d0) 
        natom=natom1+natom2
@@ -85,24 +88,15 @@ module helperFunc
        if(natom1>1)call rm_cmass(ref1_temp0,mass0(1:natom1),natom1,natom1)
        if(natom2>1)call rm_cmass(ref2_temp0,mass0(natom1+1:natom),natom2,natom2)  
    
-       !!! 1) find the Cartesian coordinates of all atoms in the NEW frame of 
-       !!!    reference (origin at the new_CM of frag. 1)
    
-       ! subroutine INT_Cart (convert: Internal coordinates --> Cartesian coordinates)  INT_Cart(internal,cart)
         ref1=ref1_temp0
         ref2=ref2_temp0
-       ! (for CH3CN-He system: internal coordinates taken as spherical coords.)
-   
+
   
-        !call Int_to_Cart(inter,mass,ref1,ref2,XDIM,natom1,natom2,intFunc,cart)
-  
-  
-          !call dcmass(cart,mass,mass0,natom1,natom2)
+          call vec_to_mat2(cart,test_cart_i,natom) 
   
          !!! 2) transfer the origin of the reference frame to the original CM of frag1 
           call rm_cmass(cart,mass0,natom1+natom2,natom1)
-   
-          !write(*,*)"cart",cart(3*natom1+1:3*(natom1+natom2))
   
           !!! 3) align Z and Z' frames
           ! find new relative position of the original CM of frag2 (with respect to the original CM of frag1)
@@ -153,7 +147,7 @@ module helperFunc
        call mat_to_vec2(cart_mat,cart,natom1+natom2)! Now "cart" is in the proper/original Frame: where the 
        ! PES was initially fitted, with its origin at the CM of frag1 and the Z-axis containing both CMs
   
-  
+       call vec_to_mat2(cart,test_cart_f,natom) 
        !!! ----------------------------------------------------------------------------------
        !!! 4) once the geometry is in the proper frame, find the corresponding Euler angles:
        !!! ----------------------------------------------------------------------------------
@@ -196,51 +190,43 @@ module helperFunc
        R_ZYZ(6) = beta2
        R_ZYZ(7) = gamma2
      
-  
+      if(present(testCart))then
+            testCart(1:3,:) = test_cart_i
+            testCart(4:6,:) = test_cart_f
+      endif  
+
 
   
     END SUBROUTINE convert_isotopic_coordinates
 
-    SUBROUTINE Get_ISOTOP_COORDINATES(internal,internal_length,internal0,XDIM,ifun,filePath,&
-                                        doTest,test_arr)
+    SUBROUTINE Get_ISOTOP_COORDINATES(internal,internalLength,internal0,XDIM,ifun,filePath,testArr)
         use mathFunc
         use coordinateTransf
         use testingFunc , only: MolecularDistanceTest
       
         IMPLICIT NONE
-        integer,INTENT(IN) :: XDIM,ifun,internal_length
+        integer,INTENT(IN) :: XDIM,ifun,internalLength
         character(*),INTENT(IN) :: filePath
-        real*8, INTENT(IN):: internal(internal_length)
+        real*8, INTENT(IN):: internal(internalLength)
         real*8, INTENT(OUT):: internal0(XDIM)
+        real*8,optional :: testArr(4)
+
         integer :: natom1,natom2
         real*8, allocatable :: ref1_0(:),ref2_0(:),mass(:),mass0(:),ref1_temp0(:),ref2_temp0(:)
-        real*8 ::  int0_AS(XDIM),int0_BiSph(XDIM),R_ZYZ(7),td(4)
-        Integer :: ifun_temp,Xdim_file,natom,doTest_c
+        real*8 ::  R_ZYZ(7)
+        Integer :: ifun_temp,Xdim_file
         integer :: initflag
         save initflag
-        character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output
+        character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output(options: "BiSpherical","Autosurf")
         data initflag /1/
         save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file,i0Type
-        real*8, allocatable :: cart(:)
-        real*8,optional :: test_arr(4)
-        integer,optional::doTest
+        real*8, allocatable:: cart(:)
+
+        real*8, allocatable:: test_cart_i(:,:),test_cart_f(:,:),testCart(:,:)
+        Integer :: natom,doTest_c
+        real*8 ::  td(4),distance_arr_test(2)
 
 
-        if(present(doTest))then
-            doTest_c=doTest
-        else
-            doTest_c=0
-        endif
-
-        ! if(present(test_arr))then
-        !     t=test_arr
-        ! else
-        !     c=0.0
-        ! endif
-
-
-        ! i0Type options: "BiSpherical","Autosurf"
-        
         natom = natom1 + natom2
       
         IF(initflag==1)THEN! initialize 
@@ -249,6 +235,9 @@ module helperFunc
         ENDIF
       
         allocate(cart((natom1+natom2)*3),ref1_temp0(natom1*3),ref2_temp0(natom2*3))
+
+        allocate(test_cart_i(3,natom),test_cart_f(3,natom),testCart(6,natom))
+
         i0Type = trim(i0Type)
         ifun_temp =ifun
 
@@ -262,36 +251,46 @@ module helperFunc
 
         
       
-        call Int_to_Cart(internal,internal_length,mass,ref1_temp0,ref2_temp0,XDIM,natom1,natom2,ifun_temp,cart)
- 
-        call convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_temp0,ref2_temp0,XDIM)
-  
+        call Int_to_Cart(internal,internalLength,mass,ref1_temp0,ref2_temp0,XDIM,natom1,natom2,ifun_temp,cart)
+
+        call convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_temp0,ref2_temp0,XDIM,testCart)
 
         if (i0Type=="Autosurf")Then
-        call EulerAngles_2_Autosurf(XDIM,R_ZYZ,internal0)
-       elseif (i0Type=="BiSpherical")Then
-        call EulerAngles_2_BiSpherical(internal,R_ZYZ,internal0)
-       end if
+                      call EulerAngles_2_Autosurf(XDIM,R_ZYZ,internal0)
+                    elseif (i0Type=="BiSpherical")Then
+                      call EulerAngles_2_BiSpherical(internal,R_ZYZ,internal0)
+        end if
+        
   
-      !!! Testing Unit
+
+        
   
-       ! This function test if the cart coodinates given by Int_to_Cart in step 1
-       ! has the same interatomic distances than the bimolecular system in the internal coordiantes internal0
-       ! This test calculate an array d1 and d0 of all interatomic distance of all atoms taken in pairs for both 
-       ! cartesian configurations   and print the sum of abs(d1-d0)
-      write(*,*)"doTest_c",doTest_c
-       if(doTest_c>0)then
-       write(*,*)"doTest_c",doTest_c
-              ! call EulerAngles_2_Autosurf(XDIM,R_ZYZ,inter0_test)
-              ! call  MolecularDistanceTest(test_cart_f,cart_ref1,cart_ref2,natom1,natom2,inter0_test,XDIM,distance_arr_test)
-              ! td(1:2) = distance_arr_test
-              ! call  MolecularDistanceTest(test_cart_i,cart_ref1,cart_ref2,natom1,natom2,inter0_test,XDIM,distance_arr_test)
-              ! td(3:4) = distance_arr_test
-              ! t_dist=td
+      
+      
+       if(present(testArr))then
+       
+              write(*,*)"Doing Test"
+              
+              !!! Testing Unit
+                
+                    ! This function test if the cart coodinates given by Int_to_Cart in step 1
+                    ! has the same interatomic distances than the bimolecular system in the internal coordiantes internal0
+                    ! This test calculate an array d1 and d0 of all interatomic distance of all atoms taken in pairs for both 
+                    ! cartesian configurations   and print the sum of abs(d1-d0)
+              
+                    ! call EulerAngles_2_Autosurf(XDIM,R_ZYZ,inter0_test)
+                    ! call  MolecularDistanceTest(test_cart_f,cart_ref1,cart_ref2,natom1,natom2,inter0_test,XDIM,distance_arr_test)
+                    ! td(1:2) = distance_arr_test
+                    ! call  MolecularDistanceTest(test_cart_i,cart_ref1,cart_ref2,natom1,natom2,inter0_test,XDIM,distance_arr_test)
+                    ! td(3:4) = distance_arr_test
+                    ! t_dist=td
+
+              !!! End Testing Unit
+
         endif
   
   
-       !!! End Testing Unit
+       
       
     END SUBROUTINE Get_ISOTOP_COORDINATES
   

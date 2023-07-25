@@ -108,10 +108,7 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
           doTest = 1 ! 0 = No ; 1 = yes
         
           Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath)
-          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,doTest=0)
-          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,doTest=0,test_arr=td)
-          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,doTest=1)
-          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,doTest=1,test_arr=td)
+          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,testArr=td)
           
           ! write(200, *) i , internal0, energies(2)
           ! if (internal0(1)>5) then 
