@@ -188,7 +188,7 @@ module coordinateTransf
     
     END SUBROUTINE Internal0_to_anglesZYZ
 
-    subroutine EulerAngles_2_BiSpherical(inter,R,a1,b1,g1,a2,b2,g2,internal0)
+    subroutine EulerAngles_2_BiSpherical(inter,R_ZYZ,internal0)
             ! *** internal coordinates ***
       ! ----------------------------
       
@@ -201,19 +201,20 @@ module coordinateTransf
           
       !********************************************************
       IMPLICIT NONE
-      real*8,INTENT(IN):: R,a1,b1,g1,a2,b2,g2,inter(5)
+      real*8,INTENT(IN):: R_ZYZ(7),inter(5)
       real*8,INTENT(OUT):: internal0(5)
       real*8::pii  ,alpha1,beta1,gamma1,alpha2,beta2,gamma2
       real*8:: term1,term2,threshold,alpha
 
       pii=dacos(-1d0) 
       
-      alpha1=a1
-      beta1=b1
-      gamma1=g1
-      alpha2=a2
-      beta2=b2
-      gamma2=g2
+      internal0(1) = R_ZYZ(1)
+      alpha1= R_ZYZ(2)
+      beta1= R_ZYZ(3)
+      gamma1= R_ZYZ(4)
+      alpha2= R_ZYZ(5)
+      beta2= R_ZYZ(6)
+      gamma2= R_ZYZ(7)
 
       
       alpha=alpha1-alpha2
@@ -229,28 +230,28 @@ module coordinateTransf
   
       threshold = 1d-8
 
-      internal0(1) = R
-      internal0(2) = b1
+
+      internal0(2) = beta1
       
 
-      If (DABS(b1)<threshold  .or. DABS(b1-pii)< threshold)Then
+      If (DABS(beta1)<threshold  .or. DABS(beta1-pii)< threshold)Then
           
           
           internal0(4) = inter(4)
 
-          If (DABS(b1)<threshold)Then
+          If (DABS(beta1)<threshold)Then
             internal0(2) = 0d0
-            internal0(3) = b2
+            internal0(3) = beta2
           else
             internal0(2) = pii
-            internal0(3) = pii - b2
+            internal0(3) = pii - beta2
           end if
 
 
-          If (DABS(b2)<threshold .or. DABS(b2-pii)<threshold)Then        
+          If (DABS(beta2)<threshold .or. DABS(beta2-pii)<threshold)Then        
             internal0(5) = inter(5)
           else 
-            If (DABS(b1)<threshold)Then
+            If (DABS(beta1)<threshold)Then
               internal0(5) = -1d0*(alpha + gamma1)
             else
               internal0(5) = alpha + gamma1-pii  
@@ -258,7 +259,7 @@ module coordinateTransf
           end if
 
       else
-        If (DABS(b1)<2d-6  .or. DABS(b1-pii)< 2d-6)Then
+        If (DABS(beta1)<2d-6  .or. DABS(beta1-pii)< 2d-6)Then
           internal0(4) = inter(4)
         else
           internal0(4) = pii- gamma1
@@ -267,24 +268,24 @@ module coordinateTransf
 
         
           
-          If (DABS(b2)<threshold .or. DABS(b2-pii)<threshold)Then   
+          If (DABS(beta2)<threshold .or. DABS(beta2-pii)<threshold)Then   
             internal0(5) = inter(5)     
-            If (DABS(b2)<threshold)Then
+            If (DABS(beta2)<threshold)Then
               internal0(3) = 0d0
             else
               internal0(3) = pii
             end if
           else 
-            internal0(3) = DACOS(DCOS(b1)*DCOS(b2)+dcos(alpha)*DSIN(b1)*DSIN(b2))
+            internal0(3) = DACOS(DCOS(beta1)*DCOS(beta2)+dcos(alpha)*DSIN(beta1)*DSIN(beta2))
 
 
-            term1 = DCos(gamma1)*DSIN(alpha)*DSIN(b2)+ DSIN(gamma1)*(DCOS(alpha)*Dcos(b1)*DSIN(b2) &
-            - DSIN(b1)*DCOS(b2) )
+            term1 = DCos(gamma1)*DSIN(alpha)*DSIN(beta2)+ DSIN(gamma1)*(DCOS(alpha)*Dcos(beta1)*DSIN(beta2) &
+            - DSIN(beta1)*DCOS(beta2) )
             
 
 
-            term2 = DSIN(b2)*(DCOS(alpha)*DCos(b1)*DCos(gamma1) - DSIN(alpha)*DSIN(gamma1)) &
-                    - DCOS(b2)*DCos(gamma1)*DSIN(b1)
+            term2 = DSIN(beta2)*(DCOS(alpha)*DCos(beta1)*DCos(gamma1) - DSIN(alpha)*DSIN(gamma1)) &
+                    - DCOS(beta2)*DCos(gamma1)*DSIN(beta1)
 
             internal0(5) = datan2(-1d0*term1,term2)
           end if
@@ -308,21 +309,21 @@ module coordinateTransf
       return
     end subroutine EulerAngles_2_BiSpherical
 
-    subroutine EulerAngles_2_Autosurf(XDIM,R,a1,b1,g1,a2,b2,g2,internal0)
+    subroutine EulerAngles_2_Autosurf(XDIM,R_ZYZ,internal0)
       IMPLICIT NONE
       Integer,INTENT(IN)::XDIM
-      real*8,INTENT(IN):: R,a1,b1,g1,a2,b2,g2
+      real*8,INTENT(IN):: R_ZYZ(7)
       real*8,INTENT(OUT):: internal0(XDIM)
       real*8::pii  ,alpha1,beta1,gamma1,alpha2,beta2,gamma2
   
       pii=dacos(-1d0) 
-      internal0(1) = R
-      alpha1=a1
-      beta1=b1
-      gamma1=g1
-      alpha2=a2
-      beta2=b2
-      gamma2=g2
+      internal0(1) = R_ZYZ(1)
+      alpha1= R_ZYZ(2)
+      beta1= R_ZYZ(3)
+      gamma1= R_ZYZ(4)
+      alpha2= R_ZYZ(5)
+      beta2= R_ZYZ(6)
+      gamma2= R_ZYZ(7)
       ! *** internal coordinates ***
       ! ----------------------------
       if(XDIM==2)then
@@ -380,12 +381,12 @@ module coordinateTransf
       return
     end subroutine EulerAngles_2_Autosurf
   
-    SUBROUTINE Int_to_Cart(internal,mass,ref1,ref2,XDIM,natom1,natom2,internalFunction,cart)
+    SUBROUTINE Int_to_Cart(internal,internal_length,mass,ref1,ref2,XDIM,natom1,natom2,internalFunction,cart)
           
           IMPLICIT NONE
 
-          integer,INTENT(IN) :: natom1,natom2,XDIM,internalFunction
-          real*8,INTENT(IN) :: internal(XDIM),mass(natom1+natom2),ref1(natom1*3),ref2(natom2*3)
+          integer,INTENT(IN) :: internal_length,natom1,natom2,XDIM,internalFunction
+          real*8,INTENT(IN) :: internal(internal_length),mass(natom1+natom2),ref1(natom1*3),ref2(natom2*3)
           integer :: intfunc
           real*8,INTENT(OUT)  :: cart((natom1+natom2)*3)
           real*8::ref1_temp0(natom1*3),ref2_temp0(natom2*3),cart_temp((natom1+natom2)*3)
@@ -407,6 +408,7 @@ module coordinateTransf
             call Int_to_Cart_ZYZ(internal,XDIM,cart_temp,mass,natom1,natom2, ref1_temp0, ref2_temp0)
             ! Only if internal is already in cartesian
             elseif ( intfunc == -1)then
+           
                     cart_temp = internal 
           endif
 

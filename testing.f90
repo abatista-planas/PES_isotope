@@ -75,36 +75,25 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
 
   IMPLICIT NONE
   character(*),INTENT(IN) :: systPath,dataPath
-  real*8::pii,cart(18),energies(4),angles1(3),angles2(3)
-  integer::natoms,i,Xdim,natom1,natom2
+  real*8::pii,cart(18),energies(4)
   character(len=1)::Atom_label
-
-  real*8, allocatable :: ref1_0(:),ref2_0(:),mass(:),mass0(:),internal0(:)
-  integer :: initflag
-  save initflag
-  character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output
-  data initflag /1/
-  save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim,i0Type
-        
-        ! i0Type options: "BiSpherical","Autosurf","Cartesian"
-        
-      
-        IF(initflag==1)THEN! initialize 
-         Call Read_File(systPath,mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim,i0Type)
-         initflag=2  
-        ENDIF
-      
-        write(*,*) "Test_Cart_to_Euler"
-
-  ALLOCATE(internal0(Xdim)) 
+  real*8 :: internal0(6),td(4)
+  integer :: stat2,stat3,i,natoms,int_to_cart_func,doTest
   
   
   open(unit=100,file=dataPath,status='old',action='read')
-  ! open(unit=200,file="coord_H2O_Dymer.txt",status='old',action='write')
-  ! open(unit=300,file="coord_H2O_Dymer_filtered.txt",status='old',action='write')
+    OPEN(unit=200, FILE="coord_H2O_Dymer.txt",ACTION='write',IOSTAT=stat2,STATUS='OLD')
+    if (stat2 .ne. 0) then
+            open(unit=200,file="coord_H2O_Dymer.txt",status='new',action='write')
+    end if
+
+    OPEN(unit=300, FILE="coord_H2O_Dymer_filtered.txt",ACTION='write',IOSTAT=stat3,STATUS='OLD')
+    if (stat3 .ne. 0) then
+            open(unit=300,file="coord_H2O_Dymer_filtered.txt",status='new',action='write')
+    end if
+
   
-  
-       do i=1,42508
+       do i=1,1!42508
        
           read(100,*)natoms
           read(100,*)energies(1:4)
@@ -114,14 +103,29 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
           read(100,*)Atom_label,cart(10:12)
           read(100,*)Atom_label,cart(13:15)
           read(100,*)Atom_label,cart(16:18)
+
+          int_to_cart_func = -1 !-1 is for cartesian input
+          doTest = 1 ! 0 = No ; 1 = yes
+        
+          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath)
+          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,doTest=0)
+          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,doTest=0,test_arr=td)
+          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,doTest=1)
+          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,doTest=1,test_arr=td)
+          
+          ! write(200, *) i , internal0, energies(2)
+          ! if (internal0(1)>5) then 
+          !  write(300, *) i , internal0, energies(2)
+          
+          ! endif
           
       enddo
       
       
       
    close(100)
-  !  close(200)
-  !  close(300)
+   close(200)
+   close(300)
 
 End SUBROUTINE Test_Cart_to_Autosurf
 
