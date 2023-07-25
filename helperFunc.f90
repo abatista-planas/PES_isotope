@@ -263,6 +263,8 @@ module helperFunc
 
         call convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_temp0,ref2_temp0,XDIM,testCart)
 
+     
+
         if (i0Type=="Autosurf")Then
                       call EulerAngles_2_Autosurf(XDIM,R_ZYZ,internal0)
                     elseif (i0Type=="BiSpherical")Then

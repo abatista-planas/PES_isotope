@@ -200,12 +200,19 @@ module mathFunc
         integer,INTENT(IN) :: natom
         real*8,INTENT(OUT):: alpha,beta,gamma
         real*8,INTENT(IN):: masses(natom),cart_ref1(3,natom),cart_mat1(3,natom)
-        integer :: ierr
+        integer :: ierr,i
         real*8 :: U_rot(3,3),quat(4),threshold,U33
       !!! ----------------------------------------------------------------------------------
       !!! 4) once the geometry is in the proper frame, find the corresponding Euler angles:
       !!! ----------------------------------------------------------------------------------
-  
+      ! do i=1,natom
+      !   write(*,*)"cart_ref1",cart_ref1(:,i)
+      ! end do 
+      ! do i=1,natom
+      !   write(*,*)"cart_mat1",cart_mat1(:,i)
+      ! end do 
+      
+
       call qtrfit(natom,cart_ref1,cart_mat1,masses,quat,U_rot,ierr)
   
       U33 = U_rot(3,3)
@@ -217,11 +224,17 @@ module mathFunc
       endif
   
       ! solve for Euler angles
-      threshold = 1d0 - 1d-16!0.9993d0
+      threshold = 1d0 - 1d-12!0.9993d0
 
   
       
       beta=dacos(U33)
+      
+      ! do i=1,3
+      !   write(*,*)"U_rot",U_rot(:,i)
+      ! end do 
+
+      !write(*,*)"Condition",U33>threshold,U33 <-1d0*threshold
       
       if(U33>threshold)then
         gamma =datan2(-U_rot(1,2),U_rot(1,1))
@@ -234,7 +247,7 @@ module mathFunc
         gamma=datan2(U_rot(3,2),-U_rot(3,1))
       endif
   
-  
+     !write(*,*)"Angles",alpha,beta,gamma
   
       return
     end subroutine Find_EulerAngles

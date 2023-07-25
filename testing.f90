@@ -18,7 +18,7 @@ PROGRAM TESTING
  test_number=100000000
  
   write(*,*)
-  write(*,*)"Hello this is a test"
+
 
  call Test_Cart_to_Autosurf('input_H2O.dat',"2b.xyz")
 
@@ -74,10 +74,11 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
 
   IMPLICIT NONE
   character(*),INTENT(IN) :: systPath,dataPath
-  real*8::pii,cart(18),energies(4)
+  real*8::pii,cart(18),cart_model(18),energies(4)
   character(len=1)::Atom_label
-  real*8 :: internal0(6),td(4),maxerr,err_test,err_tolerance
-  integer :: stat2,stat3,i,natoms,int_to_cart_func,failedTest,counterCase,XDIM
+  real*8 :: internal0(6),td(4),err_test,err_tolerance,maxerr_1,maxerr_2
+  integer :: stat2,stat3,i,natoms,int_to_cart_func,XDIM,ptos(3)
+  integer :: failedTest_1,counterCase_1,failedTest_2,counterCase_2
   real*8::response1_model(6),response2_model(6),response1(6),response2(6)
   
   XDIM=6
@@ -94,14 +95,18 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
             open(unit=300,file="./output/Paesani/coord_H2O_Dymer_filtered.txt",status='new',action='write')
     end if
 
-    failedTest = 0
-    counterCase = 0
-    maxerr = -1d0
+    failedTest_1 = 0
+    counterCase_1 = 0
+    failedTest_2 = 0
+    counterCase_2 = 0
+    maxerr_1 = -1d0
+    maxerr_2 = -1d0
     err_tolerance=1d-7
 
+    ptos = (/1,2,3 /)
 
 
-       do i=1,3000!42508  !42508
+       do i=1,2511!,42508  !42508
        
           read(100,*)natoms
           read(100,*)energies(1:4)
@@ -113,38 +118,21 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
           read(100,*)Atom_label,cart(16:18)
 
           int_to_cart_func = -1 !-1 is for cartesian input
-          counterCase=counterCase+1
-          if (i==1)Then
-              Call CosineLaw(cart(1:3),cart(4:6),cart(7:9),response1_model)
-              Call CosineLaw(cart(10:12),cart(13:15),cart(16:18),response2_model)
-          else
-              Call CosineLaw(cart(1:3),cart(4:6),cart(7:9),response1)
-              Call CosineLaw(cart(10:12),cart(13:15),cart(16:18),response2)
-            
-              if  (or(or ( Norm2(response1-response1_model)>1d-10,Norm2(response2-response2_model)>1d-10 ),&
-                    Norm2(response2-response1)>1d-10) )then
 
-                    write(*,*)"Changed ",i
-                    Call CosineLaw(cart(1:3),cart(4:6),cart(7:9),response1_model)
-                    Call CosineLaw(cart(10:12),cart(13:15),cart(16:18),response2_model)
+         if (i==1)then
+              cart_model=cart
+         end if
 
-                  ! write(*,*)"Norm2 Molec A: ",Norm2(response1-response1_model),"Norm2 Molec B: ",Norm2(response2-response2_model),&
-                  !           "Norm2 AB : ",Norm2(response2-response1),i
-                  !           failedTest=failedTest+1
-                  ! write(*,*)"Model Molec A: ",response1_model
-                  ! write(*,*)"Molec A: ",response1
-                            
-              end if
-              
-          end if
-         
+         Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,testArr=td)
 
-          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,testArr=td)
+
 
 !Reporting Error
 
           
-          !Call Report_Cartesian_Error(counterCase,failedTest,maxerr,td,err_tolerance,natoms,XDIM,cart,internal0)
+          Call Report_Cartesian_Error(counterCase_1,failedTest_1,maxerr_1,td,err_tolerance,natoms,XDIM,cart,internal0)
+          call Check_Cartesian_Frames(ptos,cart_model,cart,3,3,counterCase_2,failedTest_2,maxerr_2&
+                                      ,err_tolerance,XDIM,internal0)
 ! End Error Testing 
           
           write(200, *) i , internal0, energies(2)
@@ -152,10 +140,13 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
            write(300, *) i , internal0, energies(2)
           
           endif
-          
+
+
+   
       enddo
       
-      write(*,*) "Number of failed Cartesian coordinates: ",failedTest, " out of ", counterCase
+      write(*,*) "Number of failed Cartesian coordinates: ",failedTest_1, " out of ", counterCase_1, "maxErr: ",maxerr_1,' ' 
+      write(*,*) "Number of failed Check_Cartesian_Frames: ",failedTest_2, " out of ", counterCase_2,"maxErr: ",maxerr_2 ,' '
       
    close(100)
    close(200)
