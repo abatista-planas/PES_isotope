@@ -78,19 +78,21 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
   real*8::pii,cart(18),energies(4)
   character(len=1)::Atom_label
   real*8 :: internal0(6),td(4)
-  integer :: stat2,stat3,i,natoms,int_to_cart_func,doTest
+  integer :: stat2,stat3,i,natoms,int_to_cart_func,failedTest
   
   
   open(unit=100,file=dataPath,status='old',action='read')
-    OPEN(unit=200, FILE="coord_H2O_Dymer.txt",ACTION='write',IOSTAT=stat2,STATUS='OLD')
+    OPEN(unit=200, FILE="./output/Paesani/coord_H2O_Dymer.txt",ACTION='write',IOSTAT=stat2,STATUS='OLD')
     if (stat2 .ne. 0) then
-            open(unit=200,file="coord_H2O_Dymer.txt",status='new',action='write')
+            open(unit=200,file="./output/Paesani/coord_H2O_Dymer.txt",status='new',action='write')
     end if
 
-    OPEN(unit=300, FILE="coord_H2O_Dymer_filtered.txt",ACTION='write',IOSTAT=stat3,STATUS='OLD')
+    OPEN(unit=300, FILE="./output/Paesani/coord_H2O_Dymer_filtered.txt",ACTION='write',IOSTAT=stat3,STATUS='OLD')
     if (stat3 .ne. 0) then
-            open(unit=300,file="coord_H2O_Dymer_filtered.txt",status='new',action='write')
+            open(unit=300,file="./output/Paesani/coord_H2O_Dymer_filtered.txt",status='new',action='write')
     end if
+
+    failedTest = 0
 
   
        do i=1,1!42508
@@ -107,8 +109,45 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
           int_to_cart_func = -1 !-1 is for cartesian input
           doTest = 1 ! 0 = No ; 1 = yes
         
-          Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath)
           Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,testArr=td)
+
+!Reporting Error
+          !     counterCase = counterCase + 1
+!                 internal0_BiSph = internal0
+  
+!                 err_test = sum(DABS(internal0_BiSph -internal))
+                
+!                 if (maxerr < err_test ) then 
+!                   maxerr = err_test 
+!                 endif
+                
+!                 if (err_test > err)Then
+!                   test_failed = test_failed + 1
+!                   write(*,*)
+!                   write(*,*)"Internal           ", internal
+!                   write(*,*)"Internal 0 BiSph   ", internal0_BiSph
+!                   write(*,*)
+!                   write(*,*)"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",'\n'
+!                   write(*,*)
+               
+!                   write (*,*)"R_test" , internal0_BiSph(1) ,internal(1) 
+!                   write (*,*) "Error R",DABS(internal0_BiSph(1) -internal(1))
+!                   write (*,*)"----------------------------------------------"
+!                   write (*,*)"Theta1_Test" , internal0_BiSph(2) ,internal(2) 
+!                   write (*,*) "Error Theta1",DABS(internal0_BiSph(2) -internal(2))
+!                   write (*,*)"----------------------------------------------"
+!                   write (*,*)"Theta2_Test" , internal0_BiSph(3) ,internal(3) 
+!                   write (*,*) "Error Theta2",DABS(internal0_BiSph(3) -internal(3))
+!                   write (*,*)"----------------------------------------------"
+!                   write (*,*)"Phi1_Test" , internal0_BiSph(4) ,internal(4) 
+!                   write (*,*) "Error Phi1",DABS(internal0_BiSph(4) -internal(4))
+!                   write (*,*)"----------------------------------------------"
+!                   write (*,*)"Phi2_Test" , internal0_BiSph(5) ,internal(5) 
+!                   write (*,*) "Error Phi2",DABS(internal0_BiSph(5) -internal(5))
+!                   write (*,*)"----------------------------------------------"
+!                 end if 
+
+! End Error Testing 
           
           ! write(200, *) i , internal0, energies(2)
           ! if (internal0(1)>5) then 
