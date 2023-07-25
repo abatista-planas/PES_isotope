@@ -68,17 +68,19 @@ END PROGRAM TESTING
 
 
 SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
-
   use mathFunc
-  use coordinateTransf
+  use testingFunc
   use helperFunc
 
   IMPLICIT NONE
   character(*),INTENT(IN) :: systPath,dataPath
   real*8::pii,cart(18),energies(4)
   character(len=1)::Atom_label
-  real*8 :: internal0(6),td(4)
-  integer :: stat2,stat3,i,natoms,int_to_cart_func,failedTest
+  real*8 :: internal0(6),td(4),maxerr,err_test,err_tolerance
+  integer :: stat2,stat3,i,natoms,int_to_cart_func,failedTest,counterCase,XDIM
+  real*8::response1_model(6),response2_model(6),response1(6),response2(6)
+  
+  XDIM=6
   
   
   open(unit=100,file=dataPath,status='old',action='read')
@@ -93,9 +95,13 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
     end if
 
     failedTest = 0
+    counterCase = 0
+    maxerr = -1d0
+    err_tolerance=1d-7
 
-  
-       do i=1,1!42508
+
+
+       do i=1,3000!42508  !42508
        
           read(100,*)natoms
           read(100,*)energies(1:4)
@@ -107,57 +113,49 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
           read(100,*)Atom_label,cart(16:18)
 
           int_to_cart_func = -1 !-1 is for cartesian input
-          doTest = 1 ! 0 = No ; 1 = yes
-        
+          counterCase=counterCase+1
+          if (i==1)Then
+              Call CosineLaw(cart(1:3),cart(4:6),cart(7:9),response1_model)
+              Call CosineLaw(cart(10:12),cart(13:15),cart(16:18),response2_model)
+          else
+              Call CosineLaw(cart(1:3),cart(4:6),cart(7:9),response1)
+              Call CosineLaw(cart(10:12),cart(13:15),cart(16:18),response2)
+            
+              if  (or(or ( Norm2(response1-response1_model)>1d-10,Norm2(response2-response2_model)>1d-10 ),&
+                    Norm2(response2-response1)>1d-10) )then
+
+                    write(*,*)"Changed ",i
+                    Call CosineLaw(cart(1:3),cart(4:6),cart(7:9),response1_model)
+                    Call CosineLaw(cart(10:12),cart(13:15),cart(16:18),response2_model)
+
+                  ! write(*,*)"Norm2 Molec A: ",Norm2(response1-response1_model),"Norm2 Molec B: ",Norm2(response2-response2_model),&
+                  !           "Norm2 AB : ",Norm2(response2-response1),i
+                  !           failedTest=failedTest+1
+                  ! write(*,*)"Model Molec A: ",response1_model
+                  ! write(*,*)"Molec A: ",response1
+                            
+              end if
+              
+          end if
+         
+
           Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,testArr=td)
 
 !Reporting Error
-          !     counterCase = counterCase + 1
-!                 internal0_BiSph = internal0
-  
-!                 err_test = sum(DABS(internal0_BiSph -internal))
-                
-!                 if (maxerr < err_test ) then 
-!                   maxerr = err_test 
-!                 endif
-                
-!                 if (err_test > err)Then
-!                   test_failed = test_failed + 1
-!                   write(*,*)
-!                   write(*,*)"Internal           ", internal
-!                   write(*,*)"Internal 0 BiSph   ", internal0_BiSph
-!                   write(*,*)
-!                   write(*,*)"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",'\n'
-!                   write(*,*)
-               
-!                   write (*,*)"R_test" , internal0_BiSph(1) ,internal(1) 
-!                   write (*,*) "Error R",DABS(internal0_BiSph(1) -internal(1))
-!                   write (*,*)"----------------------------------------------"
-!                   write (*,*)"Theta1_Test" , internal0_BiSph(2) ,internal(2) 
-!                   write (*,*) "Error Theta1",DABS(internal0_BiSph(2) -internal(2))
-!                   write (*,*)"----------------------------------------------"
-!                   write (*,*)"Theta2_Test" , internal0_BiSph(3) ,internal(3) 
-!                   write (*,*) "Error Theta2",DABS(internal0_BiSph(3) -internal(3))
-!                   write (*,*)"----------------------------------------------"
-!                   write (*,*)"Phi1_Test" , internal0_BiSph(4) ,internal(4) 
-!                   write (*,*) "Error Phi1",DABS(internal0_BiSph(4) -internal(4))
-!                   write (*,*)"----------------------------------------------"
-!                   write (*,*)"Phi2_Test" , internal0_BiSph(5) ,internal(5) 
-!                   write (*,*) "Error Phi2",DABS(internal0_BiSph(5) -internal(5))
-!                   write (*,*)"----------------------------------------------"
-!                 end if 
 
+          
+          !Call Report_Cartesian_Error(counterCase,failedTest,maxerr,td,err_tolerance,natoms,XDIM,cart,internal0)
 ! End Error Testing 
           
-          ! write(200, *) i , internal0, energies(2)
-          ! if (internal0(1)>5) then 
-          !  write(300, *) i , internal0, energies(2)
+          write(200, *) i , internal0, energies(2)
+          if (internal0(1)>5) then 
+           write(300, *) i , internal0, energies(2)
           
-          ! endif
+          endif
           
       enddo
       
-      
+      write(*,*) "Number of failed Cartesian coordinates: ",failedTest, " out of ", counterCase
       
    close(100)
    close(200)

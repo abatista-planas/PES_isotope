@@ -55,6 +55,44 @@ module testingFunc
         
     
     END SUBROUTINE MolecularDistanceTest
-  
+
+
+    !Reporting Error
+
+    SUBROUTINE Report_Cartesian_Error(counterCase,test_failed,maxerr,td,err_tolerance,natoms,XDIM,cart,internal0)
+        
+        IMPLICIT NONE
+        integer,INTENT(INOUT) ::  counterCase,test_failed
+        integer,INTENT(IN) ::     natoms,XDIM
+        real*8,INTENT(IN) ::      td(4),err_tolerance,cart(natoms*3),internal0(XDIM)
+        real*8,INTENT(INOUT) ::   maxerr
+        integer:: j
+        real*8::err_test
+          counterCase = counterCase + 1
+          
+          err_test = 0;
+          err_test = sum(DABS(td))
+          
+          if (maxerr < err_test ) then 
+            maxerr = err_test 
+          endif
+          
+          if (err_test > err_tolerance)Then
+            test_failed = test_failed + 1
+            write(*,*)
+            write(*,*)"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",'\n'
+            write(*,*)"Cartesian coordinates           : ", counterCase
+            write(*,*)"Error           : ", err_test,td
+            do j=1,natoms
+                write(*,*)"Atom ",j," :", cart(1+(j-1)*3:j*3)
+                write (*,*)"----------------------------------------------"
+            end do
+
+            write(*,*)"Dimension :",XDIM 
+            write(*,*) internal0
+            write(*,*)"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",'\n'
+            write(*,*)
+          end if 
+    END SUBROUTINE Report_Cartesian_Error
 end module testingFunc
     

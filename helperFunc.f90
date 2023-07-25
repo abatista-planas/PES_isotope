@@ -62,8 +62,8 @@ module helperFunc
         integer,INTENT(IN) :: natom1,natom2,XDIM
         real*8,INTENT(IN) ::  cart((natom1+natom2)*3),mass(natom1+natom2),mass0(natom1+natom2),&
                               ref1_0(natom1*3),ref2_0(natom2*3)!,inter(XDIM)
-        real*8,INTENT(OUT) :: R_ZYZ(7)
-        real*8,optional :: testCart(6,natom1+natom2)
+        real*8,INTENT(INOUT) :: R_ZYZ(7)
+        real*8,optional,INTENT(INOUT) :: testCart(6,natom1+natom2)
 
         integer ::natom!,intFunc
         real*8 :: ref1_temp0(natom1*3),ref2_temp0(natom2*3),cm(3)
@@ -72,8 +72,8 @@ module helperFunc
         real*8 :: cart_mat(3,natom1+natom2)
         real*8 :: U_rot(3,3)
         real*8 :: gamma1,gamma2,beta1,beta2,alpha1,alpha2,theta,phi,pii,cos_theta,sin_theta
-
-        real*8 :: test_cart_i(3,natom1+natom2),test_cart_f(3,natom1+natom2)
+        real*8 :: tci(3,natom1+natom2),tcf(3,natom1+natom2)
+        integer::i,j
   
        pii=dacos(-1d0) 
        natom=natom1+natom2
@@ -92,8 +92,13 @@ module helperFunc
         ref1=ref1_temp0
         ref2=ref2_temp0
 
-  
-          call vec_to_mat2(cart,test_cart_i,natom) 
+        
+         if(present(testCart))then
+              call vec_to_mat2(cart,tci,natom) 
+              testCart(1:3,:) =tci
+        endif
+
+   
   
          !!! 2) transfer the origin of the reference frame to the original CM of frag1 
           call rm_cmass(cart,mass0,natom1+natom2,natom1)
@@ -146,8 +151,12 @@ module helperFunc
        ! transform back matrix "cart_mat[1:3,1:natom]" into a vector: "cart[1:3*natom]"
        call mat_to_vec2(cart_mat,cart,natom1+natom2)! Now "cart" is in the proper/original Frame: where the 
        ! PES was initially fitted, with its origin at the CM of frag1 and the Z-axis containing both CMs
-  
-       call vec_to_mat2(cart,test_cart_f,natom) 
+       
+       if(present(testCart))then
+              call vec_to_mat2(cart,tcf,natom) 
+              testCart(4:6,:) =tcf
+        endif
+       
        !!! ----------------------------------------------------------------------------------
        !!! 4) once the geometry is in the proper frame, find the corresponding Euler angles:
        !!! ----------------------------------------------------------------------------------
@@ -190,11 +199,8 @@ module helperFunc
        R_ZYZ(6) = beta2
        R_ZYZ(7) = gamma2
      
-      if(present(testCart))then
-            testCart(1:3,:) = test_cart_i
-            testCart(4:6,:) = test_cart_f
-      endif  
-
+     
+      
 
   
     END SUBROUTINE convert_isotopic_coordinates
@@ -213,7 +219,7 @@ module helperFunc
 
         integer :: natom1,natom2
         real*8, allocatable :: ref1_0(:),ref2_0(:),mass(:),mass0(:),ref1_temp0(:),ref2_temp0(:)
-        real*8 ::  R_ZYZ(7)
+        real*8 ::  R_ZYZ(7),testCart(6,internalLength/3)
         Integer :: ifun_temp,Xdim_file
         integer :: initflag
         save initflag
@@ -222,9 +228,9 @@ module helperFunc
         save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file,i0Type
         real*8, allocatable:: cart(:)
 
-        real*8, allocatable:: test_cart_i(:,:),test_cart_f(:,:),testCart(:,:)
+        real*8, allocatable:: test_cart_i(:,:),test_cart_f(:,:),cart_ref1(:,:),cart_ref2(:,:)
         Integer :: natom,doTest_c
-        real*8 ::  td(4),distance_arr_test(2)
+        real*8 ::  td(4),distance_arr_test(2),inter0_test(XDIM)
 
 
         natom = natom1 + natom2
@@ -236,7 +242,9 @@ module helperFunc
       
         allocate(cart((natom1+natom2)*3),ref1_temp0(natom1*3),ref2_temp0(natom2*3))
 
-        allocate(test_cart_i(3,natom),test_cart_f(3,natom),testCart(6,natom))
+        allocate(test_cart_i(3,natom),test_cart_f(3,natom),cart_ref1(3,natom1),cart_ref2(3,natom2))
+
+    
 
         i0Type = trim(i0Type)
         ifun_temp =ifun
@@ -262,15 +270,15 @@ module helperFunc
         end if
         
   
-
-        
-  
       
       
        if(present(testArr))then
        
-              write(*,*)"Doing Test"
-              
+              test_cart_i= testCart(1:3,:)
+              test_cart_f= testCart(4:6,:)
+
+              call vec_to_mat2(ref1_temp0,cart_ref1,natom1)
+              call vec_to_mat2(ref2_temp0,cart_ref2,natom2)
               !!! Testing Unit
                 
                     ! This function test if the cart coodinates given by Int_to_Cart in step 1
@@ -278,13 +286,13 @@ module helperFunc
                     ! This test calculate an array d1 and d0 of all interatomic distance of all atoms taken in pairs for both 
                     ! cartesian configurations   and print the sum of abs(d1-d0)
               
-                    ! call EulerAngles_2_Autosurf(XDIM,R_ZYZ,inter0_test)
-                    ! call  MolecularDistanceTest(test_cart_f,cart_ref1,cart_ref2,natom1,natom2,inter0_test,XDIM,distance_arr_test)
-                    ! td(1:2) = distance_arr_test
-                    ! call  MolecularDistanceTest(test_cart_i,cart_ref1,cart_ref2,natom1,natom2,inter0_test,XDIM,distance_arr_test)
-                    ! td(3:4) = distance_arr_test
-                    ! t_dist=td
+                    call EulerAngles_2_Autosurf(XDIM,R_ZYZ,inter0_test)
+                    call  MolecularDistanceTest(test_cart_f,cart_ref1,cart_ref2,natom1,natom2,inter0_test,XDIM,distance_arr_test)
+                    td(1:2) = distance_arr_test
+                    call  MolecularDistanceTest(test_cart_i,cart_ref1,cart_ref2,natom1,natom2,inter0_test,XDIM,distance_arr_test)
+                    td(3:4) = distance_arr_test
 
+                    testArr = td
               !!! End Testing Unit
 
         endif
