@@ -1,50 +1,32 @@
 PROGRAM TESTING
 
+        use helperFunc
+        use testingFunc
  
- IMPLICIT NONE
- integer :: XDIM
+        IMPLICIT NONE
+        integer :: natom1,natom2,natom,XDIM,i,k, test_failed(5),ft,fileOutNumber
+        real*8, allocatable :: ref1(:),ref2(:),mass(:),mass0(:),internal(:),internal0(:)
+        real*8 :: pii
+        real*8::distance(3)
+        INTEGER DATE_TIME (8)
+        CHARACTER (LEN = 10) BIG_BEN (3)
 
 
- real*8, allocatable :: CasesRand(:,:)
- real*8 :: test_dist(5)
- integer :: counterCase, test_number
- Integer::test_failed
- real*8::maxerr
+        real*8, allocatable :: CasesRand(:,:)
+        real*8 :: test_dist(5)
+        integer :: counterCase, test_number
+        real*8::maxerr
 
 
+        test_number=100000
 
+        fileOutNumber=12
 
+        ! open(unit=10,file='input.dat',status='old',action='read')
 
- test_number=100000000
- 
-  write(*,*)
-
-
- call Test_Cart_to_Autosurf('input_H2O.dat',"2b.xyz")
-
-
-!    use helperFunc
-!   IMPLICIT NONE
-  
-
-!   integer :: natom1,natom2,natom,XDIM,i,k, test_failed(5),ft,fileOutputNumber
-!   real*8, allocatable :: ref1(:),ref2(:),mass(:),mass0(:),internal(:),internal0(:)
-!   real*8 :: pii
-!   real*8::distance(3)
-!   INTEGER DATE_TIME (8)
-!   CHARACTER (LEN = 10) BIG_BEN (3)
-
-
-!  pii=acos(-1d0) 
-
-
-!  fileOutputNumber=12
-
-!  open(unit=10,file='input.dat',status='old',action='read')
-
-!  read(10,*) XDIM
-!  read(10,*) natom1! number of atoms in fragment1
-!  read(10,*) natom2! number of atoms in fragment2
+        ! read(10,*) XDIM
+        ! read(10,*) natom1! number of atoms in fragment1
+        ! read(10,*) natom2! number of atoms in fragment2
 
 !  natom = natom1+natom2 ! total number of atoms
 
@@ -72,35 +54,37 @@ PROGRAM TESTING
 !  mass=mass0
 !  mass(2)=mass(2)*2d0
 
-!  CALL DATE_AND_TIME (BIG_BEN (1), BIG_BEN (2), &
-!  BIG_BEN (3), DATE_TIME)
+        CALL DATE_AND_TIME (BIG_BEN (1), BIG_BEN (2), &
+        BIG_BEN (3), DATE_TIME)
 
-!  call FileChecking('Testing_Output.txt',fileOutputNumber)
+        call FileChecking('./output/Testing_Output.txt',fileOutNumber)
+        REWIND(fileOutNumber)
 
-!  write(fileOutputNumber,*)"******************************************************************************"
-!  write(fileOutputNumber,*)  "Test Day and Time Record"
-!  write(fileOutputNumber,*)  "Month / Day / Year: ",DATE_TIME(2),"/",DATE_TIME(3),"/",DATE_TIME(1) 
-!  write(fileOutputNumber,*)  "Hr    / Min / Sec : ",DATE_TIME(5),":",DATE_TIME(6),":",DATE_TIME(7) 
- 
-
-
-
-!  call Testing_InteratomicDistances("2DCase/input.dat",2, ft,fileOutputNumber)
-!  call Testing_InteratomicDistances("3DCase/input.dat",1, ft,fileOutputNumber)
-!  call Testing_InteratomicDistances("3DCase/input.dat",2, ft,fileOutputNumber)
-!  call Testing_InteratomicDistances("4DCase/input.dat",2, ft,fileOutputNumber)
-!  call Testing_InteratomicDistances("5DCase/input.dat",2, ft,fileOutputNumber)
-!  call Testing_InteratomicDistances("6DCase/input.dat",2, ft,fileOutputNumber)
+        write(fileOutNumber,*)"******************************************************************************"
+        write(fileOutNumber,*)  "Test Day and Time Record"
+        write(fileOutNumber,*)  "Month / Day / Year: ",DATE_TIME(2),"/",DATE_TIME(3),"/",DATE_TIME(1) 
+        write(fileOutNumber,*)  "Hr    / Min / Sec : ",DATE_TIME(5),":",DATE_TIME(6),":",DATE_TIME(7) 
+        
+        call Test_Cart_to_Autosurf('./test/Cartesian/input_H2O.dat',"./test/Cartesian/2b.xyz",fileOutNumber)
 
 
- 
-!  call Testing_AxisChanges("2DCase/input.dat",2,ft,fileOutputNumber)
-!  call Testing_AxisChanges("3DCase/input.dat",2,ft,fileOutputNumber)
-!  call Testing_AxisChanges("4DCase/input.dat",2,ft,fileOutputNumber)
-!  call Testing_AxisChanges("5DCase/input.dat",2,ft,fileOutputNumber)
-!  call Testing_AxisChanges("6DCase/input.dat",2,ft,fileOutputNumber)
 
-!  close(fileOutputNumber)
+        ! call Testing_InteratomicDistances("2DCase/input.dat",2, ft,fileOutNumber)
+        ! call Testing_InteratomicDistances("3DCase/input.dat",1, ft,fileOutNumber)
+        ! call Testing_InteratomicDistances("3DCase/input.dat",2, ft,fileOutNumber)
+        ! call Testing_InteratomicDistances("4DCase/input.dat",2, ft,fileOutNumber)
+        ! call Testing_InteratomicDistances("5DCase/input.dat",2, ft,fileOutNumber)
+        ! call Testing_InteratomicDistances("6DCase/input.dat",2, ft,fileOutNumber)
+
+
+        
+        ! call Testing_AxisChanges("2DCase/input.dat",2,ft,fileOutNumber)
+        ! call Testing_AxisChanges("3DCase/input.dat",2,ft,fileOutNumber)
+        ! call Testing_AxisChanges("4DCase/input.dat",2,ft,fileOutNumber)
+        ! call Testing_AxisChanges("5DCase/input.dat",2,ft,fileOutNumber)
+        ! call Testing_AxisChanges("6DCase/input.dat",2,ft,fileOutNumber)
+
+        close(fileOutNumber)
 
 !  XDIM = 5
 
@@ -147,103 +131,7 @@ END PROGRAM TESTING
 
 
 
-SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
-  use mathFunc
-  use testingFunc
-  use helperFunc
 
-  IMPLICIT NONE
-  character(*),INTENT(IN) :: systPath,dataPath
-  real*8::pii,cart(18),cart_model(18),energies(4)
-  character(len=1)::Atom_label
-  real*8 :: internal0(6),td(4),err_test,err_tolerance,maxerr_1,maxerr_2
-  integer :: stat2,stat3,i,natoms,int_to_cart_func,XDIM,ptos(3)
-  integer :: failedTest_1,counterCase_1,failedTest_2,counterCase_2
-  real*8::response1_model(6),response2_model(6),response1(6),response2(6)
-  integer :: stat
-
-
-  XDIM=6
-  
-  
-  open(unit=100,file=dataPath,status='old',action='read')
-    OPEN(unit=200, FILE="./output/Paesani/coord_H2O_Dymer.txt",ACTION='write',IOSTAT=stat2,STATUS='OLD')
-    if (stat2 .ne. 0) then
-            open(unit=200,file="./output/Paesani/coord_H2O_Dymer.txt",status='new',action='write')
-    end if
-
-    OPEN(unit=300, FILE="./output/Paesani/coord_H2O_Dymer_filtered.txt",ACTION='write',IOSTAT=stat3,STATUS='OLD')
-    if (stat3 .ne. 0) then
-            open(unit=300,file="./output/Paesani/coord_H2O_Dymer_filtered.txt",status='new',action='write')
-    end if
-
-    failedTest_1 = 0
-    counterCase_1 = 0
-    failedTest_2 = 0
-    counterCase_2 = 0
-    maxerr_1 = -1d0
-    maxerr_2 = -1d0
-    err_tolerance=1d-7
-    int_to_cart_func = -1
-    ptos = (/1,2,3 /)
-    i=0
-
-       do !i=1,2510!42508  !42508
-         
-         i=i+1
-         
-  
-       
-          read(100,*,iostat=stat)natoms
-          if (stat /= 0 .or. i>2520) exit
-
-          read(100,*)energies(1:4)
-          read(100,*)Atom_label,cart(1:3)
-          read(100,*)Atom_label,cart(4:6)
-          read(100,*)Atom_label,cart(7:9)
-          read(100,*)Atom_label,cart(10:12)
-          read(100,*)Atom_label,cart(13:15)
-          read(100,*)Atom_label,cart(16:18)
-
-           !-1 is for cartesian input
-
-         if (i==1)then
-              cart_model=cart
-         end if
-
-         write(*,*)i
-         Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,testArr_Errors = td)
-
-
-
-!Reporting Error
-
-          
-          Call Report_Cartesian_Error(counterCase_1,failedTest_1,maxerr_1,td,err_tolerance,natoms,XDIM,cart,internal0)
-          call Check_Cartesian_Frames(ptos,cart_model,cart,3,3,counterCase_2,failedTest_2,maxerr_2&
-                                     ,err_tolerance,XDIM,internal0)
-!End Error Testing 
-          
-          write(200, *) i , internal0, energies(2)
-          if (internal0(1)>5) then 
-           write(300, *) i , internal0, energies(2)
-          
-          endif
-
-
-   
-      enddo
-      
-
-
-      write(*,*) "Number of failed Cartesian coordinates: ",failedTest_1, " out of ", counterCase_1, "maxErr: ",maxerr_1,' ' 
-      write(*,*) "Number of failed Check_Cartesian_Frames: ",failedTest_2, " out of ", counterCase_2,"maxErr: ",maxerr_2 ,' '
-      
-   close(100)
-   close(200)
-   close(300)
-
-End SUBROUTINE Test_Cart_to_Autosurf
 
 
 
