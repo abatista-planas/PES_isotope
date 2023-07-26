@@ -105,7 +105,7 @@ module helperFunc
     !input  is in cartesian
     !output is R and the 6 euler angles in ZYZ
 
-    SUBROUTINE convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM,testErr)
+    SUBROUTINE convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM,testErr,doTest)
        
         use mathFunc
         use coordinateTransf
@@ -116,8 +116,8 @@ module helperFunc
         real*8,INTENT(IN) ::  cart((natom1+natom2)*3),mass(natom1+natom2),mass0(natom1+natom2),&
                               ref1_0(natom1*3),ref2_0(natom2*3)!,inter(XDIM)
         real*8,INTENT(INOUT) :: R_ZYZ(7)
-        real*8, optional:: testErr(4)
-
+        real*8,INTENT(INOUT):: testErr(4)
+        integer , optional :: doTest
         integer ::natom!,intFunc
         real*8 :: ref1_temp0(natom1*3),ref2_temp0(natom2*3),cm(3)
         real*8 :: ref1(natom1*3),ref2(natom1*3),cart_ref1(3,natom1),cart_mat1(3,natom1)
@@ -147,8 +147,8 @@ module helperFunc
         ref1=ref1_temp0
         ref2=ref2_temp0
 
-        write(*,*)"1 Present"
-         if(present(testErr))then
+       
+         if(present(doTest))then
             call vec_to_mat2(cart,tci,natom) 
           endif
 
@@ -206,7 +206,7 @@ module helperFunc
        call mat_to_vec2(cart_mat,cart,natom1+natom2)! Now "cart" is in the proper/original Frame: where the 
        ! PES was initially fitted, with its origin at the CM of frag1 and the Z-axis containing both CMs
        
-       if(present(testErr))then
+       if(present(doTest))then
               call vec_to_mat2(cart,tcf,natom) 
        endif
        
@@ -252,12 +252,12 @@ module helperFunc
        R_ZYZ(6) = beta2
        R_ZYZ(7) = gamma2
 
-       write(*,*)tcf
+     
 
 
-      if(present(testErr))then
+      if(present(doTest))then
        
- 
+            if (doTest>0)then
               !!! Testing Unit
                 
                     ! This function test if the cart coodinates given by Int_to_Cart in step 1
@@ -275,7 +275,7 @@ module helperFunc
 
                     testErr = td
               !!! End Testing Unit
-
+            end if
         endif
      
      
@@ -297,7 +297,7 @@ module helperFunc
         real*8, optional :: testArr_Errors(4)
 
         integer :: natom1,natom2,natom
-        real*8, allocatable :: ref1_0(:),ref2_0(:),mass(:),mass0(:),ref1_temp0(:),ref2_temp0(:)
+        real*8, allocatable :: ref1_0(:),ref2_0(:),mass(:),mass0(:),ref1_temp0(:),ref2_temp0(:),cart(:)
         real*8 ::  R_ZYZ(7)
         Integer :: ifun_temp,Xdim_file
         integer :: initflag
@@ -305,7 +305,7 @@ module helperFunc
         character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output(options: "BiSpherical","Autosurf")
         data initflag /1/
         save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file,i0Type
-        real*8, allocatable:: cart(:)
+        
 
         real*8 ::  td(4)
 
@@ -317,7 +317,7 @@ module helperFunc
          initflag=2  
         ENDIF
       
-        allocate(cart(natom*3),ref1_temp0(natom1*3),ref2_temp0(natom2*3))
+        allocate(ref1_temp0(natom1*3),ref2_temp0(natom2*3))
 
 
 
@@ -339,23 +339,20 @@ module helperFunc
       
         call Int_to_Cart(internal,internalLength,mass,ref1_temp0,ref2_temp0,XDIM,natom1,natom2,ifun_temp,cart)
 
-         write(*,*)"testArr_Errors"
+
 
         if (present(testArr_Errors))then
-         call convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_temp0,ref2_temp0,XDIM,td)
-         write(*,*)"Hello present"
+         call convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_temp0,ref2_temp0,XDIM,td,1)
+         testArr_Errors = td
         else
-         call convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_temp0,ref2_temp0,XDIM)
+         call convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_temp0,ref2_temp0,XDIM,td)
         end if 
-       
-        
-     
 
-        ! if (i0Type=="Autosurf")Then
-        !               call EulerAngles_2_Autosurf(XDIM,R_ZYZ,internal0)
-        !             elseif (i0Type=="BiSpherical")Then
-        !               call EulerAngles_2_BiSpherical(internal,R_ZYZ,internal0)
-        ! end if
+        if (i0Type=="Autosurf")Then
+                      call EulerAngles_2_Autosurf(XDIM,R_ZYZ,internal0)
+                    elseif (i0Type=="BiSpherical")Then
+                      call EulerAngles_2_BiSpherical(internal,R_ZYZ,internal0)
+        end if
     
 
 

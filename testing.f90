@@ -80,6 +80,8 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
   integer :: stat2,stat3,i,natoms,int_to_cart_func,XDIM,ptos(3)
   integer :: failedTest_1,counterCase_1,failedTest_2,counterCase_2
   real*8::response1_model(6),response2_model(6),response1(6),response2(6)
+  integer :: stat
+
 
   XDIM=6
   
@@ -102,13 +104,19 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
     maxerr_1 = -1d0
     maxerr_2 = -1d0
     err_tolerance=1d-7
-
+    int_to_cart_func = -1
     ptos = (/1,2,3 /)
+    i=0
 
-
-       do i=1,1!,42508  !42508
+       do !i=1,2510!42508  !42508
+         
+         i=i+1
+         
+  
        
-          read(100,*)natoms
+          read(100,*,iostat=stat)natoms
+          if (stat /= 0 .or. i>2520) exit
+
           read(100,*)energies(1:4)
           read(100,*)Atom_label,cart(1:3)
           read(100,*)Atom_label,cart(4:6)
@@ -117,13 +125,14 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
           read(100,*)Atom_label,cart(13:15)
           read(100,*)Atom_label,cart(16:18)
 
-          int_to_cart_func = -1 !-1 is for cartesian input
+           !-1 is for cartesian input
 
          if (i==1)then
               cart_model=cart
          end if
 
-         Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,td)
+         write(*,*)i
+         Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,testArr_Errors = td)
 
 
 
@@ -132,8 +141,8 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
           
           Call Report_Cartesian_Error(counterCase_1,failedTest_1,maxerr_1,td,err_tolerance,natoms,XDIM,cart,internal0)
           call Check_Cartesian_Frames(ptos,cart_model,cart,3,3,counterCase_2,failedTest_2,maxerr_2&
-                                      ,err_tolerance,XDIM,internal0)
-! End Error Testing 
+                                     ,err_tolerance,XDIM,internal0)
+!End Error Testing 
           
           write(200, *) i , internal0, energies(2)
           if (internal0(1)>5) then 
@@ -145,6 +154,8 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
    
       enddo
       
+
+
       write(*,*) "Number of failed Cartesian coordinates: ",failedTest_1, " out of ", counterCase_1, "maxErr: ",maxerr_1,' ' 
       write(*,*) "Number of failed Check_Cartesian_Frames: ",failedTest_2, " out of ", counterCase_2,"maxErr: ",maxerr_2 ,' '
       

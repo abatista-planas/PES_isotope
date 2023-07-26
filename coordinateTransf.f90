@@ -388,9 +388,11 @@ module coordinateTransf
           integer,INTENT(IN) :: internal_length,natom1,natom2,XDIM,internalFunction
           real*8,INTENT(IN) :: internal(internal_length),mass(natom1+natom2),ref1(natom1*3),ref2(natom2*3)
           integer :: intfunc
-          real*8,INTENT(OUT)  :: cart((natom1+natom2)*3)
+          real*8,allocatable,INTENT(OUT)  :: cart(:)
           real*8::ref1_temp0(natom1*3),ref2_temp0(natom2*3),cart_temp((natom1+natom2)*3)
           
+
+          allocate(cart(3*(natom1+natom2)))
           intfunc = internalFunction
           !************** Subroutine definition 
               ! Place your custom function here! 
