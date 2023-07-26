@@ -2,6 +2,21 @@ module helperFunc
   
     contains
 
+    SUBROUTINE FileChecking(fileName,num)
+      implicit none
+      character(*),INTENT(IN)::fileName
+      Integer,INTENT(IN)::num
+      logical :: exist
+
+      inquire(file=fileName, exist=exist)
+      if (exist) then
+        open(num, file=fileName, status="old", position="append", action="write")
+      else
+        open(num, file=fileName, status="new", action="write")
+      end if
+
+    END SUBROUTINE FileChecking
+
     SUBROUTINE Read_File(filename,mass,mass0,natom1,natom2,ref1,ref2,XDIM,i0Type)
       IMPLICIT NONE
       integer,INTENT(INOUT) :: natom1,natom2,XDIM

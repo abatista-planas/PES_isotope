@@ -4,9 +4,9 @@ F90 = gfortran # compile with gfortran
 
 CMPLFLG = -c -O3 -fbacktrace
 
-OBJS =   SUBROUTINES_F77.o mathFunc.o coordinateTransf.o testingFunc.o helperFunc.o main.o
+OBJS =   SUBROUTINES_F77.o mathFunc.o coordinateTransf.o helperFunc.o testingFunc.o  main.o
 
-OBJS_Test =   SUBROUTINES_F77.o mathFunc.o coordinateTransf.o testingFunc.o helperFunc.o testing.o
+OBJS_Test =   SUBROUTINES_F77.o mathFunc.o coordinateTransf.o helperFunc.o testingFunc.o  testing.o
 
 all : $(OBJS)
 	$(F90) $(OBJS) -o ejec.x
