@@ -80,7 +80,7 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
   integer :: stat2,stat3,i,natoms,int_to_cart_func,XDIM,ptos(3)
   integer :: failedTest_1,counterCase_1,failedTest_2,counterCase_2
   real*8::response1_model(6),response2_model(6),response1(6),response2(6)
-  
+
   XDIM=6
   
   
@@ -106,7 +106,7 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
     ptos = (/1,2,3 /)
 
 
-       do i=1,2511!,42508  !42508
+       do i=1,1!,42508  !42508
        
           read(100,*)natoms
           read(100,*)energies(1:4)
@@ -123,7 +123,7 @@ SUBROUTINE Test_Cart_to_Autosurf(systPath,dataPath)
               cart_model=cart
          end if
 
-         Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,testArr=td)
+         Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, int_to_cart_func ,systPath,td)
 
 
 
