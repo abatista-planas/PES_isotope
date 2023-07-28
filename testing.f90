@@ -22,37 +22,7 @@ PROGRAM TESTING
 
         fileOutNumber=12
 
-        ! open(unit=10,file='input.dat',status='old',action='read')
 
-        ! read(10,*) XDIM
-        ! read(10,*) natom1! number of atoms in fragment1
-        ! read(10,*) natom2! number of atoms in fragment2
-
-!  natom = natom1+natom2 ! total number of atoms
-
-!  allocate(ref1(3*natom1),ref2(3*natom2),mass(natom),mass0(natom),internal(XDIM),internal0(XDIM))
-
-!  if(natom1>1)then
-!    do i=1,natom1
-!      read(10,*)mass0(i),(ref1(k),k=i*3-2,i*3)
-!    enddo
-!  elseif(natom1==1)then
-!    read(10,*)mass0(1)
-!    ref1=0.d0
-!  endif
-
-!  if(natom2>1)then
-!    do i=1,natom2
-!      read(10,*)mass0(natom1+i),(ref2(k),k=i*3-2,i*3)
-!    enddo
-!  elseif(natom2==1)then
-!    read(10,*)mass0(natom1+1)
-!    ref2=0.d0
-!  endif
-!  close(10)
- 
-!  mass=mass0
-!  mass(2)=mass(2)*2d0
 
         CALL DATE_AND_TIME (BIG_BEN (1), BIG_BEN (2), &
         BIG_BEN (3), DATE_TIME)
@@ -69,12 +39,12 @@ PROGRAM TESTING
 
 
 
-        ! call Testing_InteratomicDistances("2DCase/input.dat",2, ft,fileOutNumber)
-        ! call Testing_InteratomicDistances("3DCase/input.dat",1, ft,fileOutNumber)
-        ! call Testing_InteratomicDistances("3DCase/input.dat",2, ft,fileOutNumber)
-        ! call Testing_InteratomicDistances("4DCase/input.dat",2, ft,fileOutNumber)
-        ! call Testing_InteratomicDistances("5DCase/input.dat",2, ft,fileOutNumber)
-        ! call Testing_InteratomicDistances("6DCase/input.dat",2, ft,fileOutNumber)
+        call Testing_InteratomicDistances("2DCase/input.dat",2, ft,fileOutNumber)
+        call Testing_InteratomicDistances("3DCase/input.dat",1, ft,fileOutNumber)
+        call Testing_InteratomicDistances("3DCase/input.dat",2, ft,fileOutNumber)
+        call Testing_InteratomicDistances("4DCase/input.dat",2, ft,fileOutNumber)
+        call Testing_InteratomicDistances("5DCase/input.dat",2, ft,fileOutNumber)
+        call Testing_InteratomicDistances("6DCase/input.dat",2, ft,fileOutNumber)
 
 
         
