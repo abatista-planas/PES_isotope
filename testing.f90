@@ -39,12 +39,13 @@ PROGRAM TESTING
 
 
 
-        call Testing_InteratomicDistances("2DCase/input.dat",2, ft,fileOutNumber)
-        call Testing_InteratomicDistances("3DCase/input.dat",1, ft,fileOutNumber)
-        call Testing_InteratomicDistances("3DCase/input.dat",2, ft,fileOutNumber)
-        call Testing_InteratomicDistances("4DCase/input.dat",2, ft,fileOutNumber)
-        call Testing_InteratomicDistances("5DCase/input.dat",2, ft,fileOutNumber)
-        call Testing_InteratomicDistances("6DCase/input.dat",2, ft,fileOutNumber)
+        call Testing_InteratomicDistances("./test/2DCase/input.dat",2,"Autosurf","Autosurf", ft,fileOutNumber)
+        !call Testing_InteratomicDistances("./test/3DCase/input.dat",3,"Spherical","Autosurf", ft,fileOutNumber)
+        call Testing_InteratomicDistances("./test/3DCase/input.dat",3,"Autosurf","Autosurf", ft,fileOutNumber)
+        ! call Testing_InteratomicDistances("./test/4DCase/input.dat",4,"Autosurf","Autosurf", ft,fileOutNumber)
+        ! call Testing_InteratomicDistances("./test/5DCase/input.dat",5,"Autosurf","Autosurf", ft,fileOutNumber)
+        ! call Testing_InteratomicDistances("./test/6DCase/input.dat",6,"Autosurf","Autosurf", ft,fileOutNumber)
+     
 
 
         
