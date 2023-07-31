@@ -17,13 +17,12 @@ module helperFunc
 
     END SUBROUTINE FileChecking
 
-    SUBROUTINE Read_File(filename,mass,mass0,natom1,natom2,ref1,ref2,XDIM,i0Type)
+    SUBROUTINE Read_File(filename,mass,mass0,natom1,natom2,ref1,ref2,XDIM)
       IMPLICIT NONE
       integer,INTENT(INOUT) :: natom1,natom2,XDIM
       real*8, allocatable,INTENT(INOUT) :: ref1(:),ref2(:),mass0(:),mass(:)
       integer :: natom,i,k
-      character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output [options: "BiSpherical","Autosurf"]
-    
+     
      
       character(*),INTENT(IN)::filename
     
@@ -35,9 +34,6 @@ module helperFunc
 
       natom=natom1+natom2 ! total number of atoms
     
-      read(10,*) i0Type! Internal0 coodinate system in the output [options: "BiSpherical","Autosurf"]
-
-      
     
       allocate(ref1(3*natom1),ref2(3*natom2),mass0(natom),mass(natom))
     
@@ -299,48 +295,45 @@ module helperFunc
   
     END SUBROUTINE convert_isotopic_coordinates
 
-    SUBROUTINE Get_ISOTOP_COORDINATES(internal,internalLength,internal0,XDIM,ifun,filePath,testArr_Errors)
+    SUBROUTINE Get_ISOTOP_COORDINATES(internal,internalLength,internal0,XDIM,inputCoord,outputCoord,filePath,&
+                                      testArr_Errors,newflag)
         use mathFunc
         use coordinateTransf
   
       
         IMPLICIT NONE
-        integer,INTENT(IN) :: XDIM,ifun,internalLength
-        character(*),INTENT(IN) :: filePath
+        integer,INTENT(IN) :: XDIM,internalLength
+        character(*),INTENT(IN) :: filePath,inputCoord,outputCoord
         real*8, INTENT(IN):: internal(internalLength)
         real*8, INTENT(OUT):: internal0(XDIM)
         real*8, optional :: testArr_Errors(4)
+        integer,optional :: newflag
 
         integer :: natom1,natom2,natom
         real*8, allocatable :: ref1_0(:),ref2_0(:),mass(:),mass0(:),ref1_temp0(:),ref2_temp0(:),cart(:)
         real*8 ::  R_ZYZ(7)
-        Integer :: ifun_temp,Xdim_file
+        Integer :: Xdim_file
+        
         integer :: initflag
         save initflag
-        character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output(options: "BiSpherical","Autosurf")
+        !character(len=25) :: i0Type ! it defines Internal0 coodinate system in the output(options: "BiSpherical","Autosurf")
         data initflag /1/
-        save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file,i0Type
+        save mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file
         
 
         real*8 ::  td(4)
 
 
         natom = natom1 + natom2
+
+   
       
         IF(initflag==1)THEN! initialize 
-         Call Read_File(filePath,mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file,i0Type)
+         Call Read_File(filePath,mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file)
          initflag=2  
         ENDIF
       
         allocate(ref1_temp0(natom1*3),ref2_temp0(natom2*3))
-
-
-
-      
-    
-
-        i0Type = trim(i0Type)
-        ifun_temp =ifun
 
         ! make temporary copies of the input data
         ref1_temp0=ref1_0! reference vector for frag1 (original frame)
@@ -352,7 +345,7 @@ module helperFunc
 
         
       
-        call Int_to_Cart(internal,internalLength,mass,ref1_temp0,ref2_temp0,XDIM,natom1,natom2,ifun_temp,cart)
+        call Int_to_Cart(internal,internalLength,mass,ref1_temp0,ref2_temp0,XDIM,natom1,natom2,inputCoord,cart)
 
 
 
@@ -363,9 +356,9 @@ module helperFunc
          call convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_temp0,ref2_temp0,XDIM,td)
         end if 
 
-        if (i0Type=="Autosurf")Then
+        if (outputCoord=="Autosurf")Then
                       call EulerAngles_2_Autosurf(XDIM,R_ZYZ,internal0)
-                    elseif (i0Type=="BiSpherical")Then
+                    elseif (outputCoord=="BiSpherical")Then
                       call EulerAngles_2_BiSpherical(internal,R_ZYZ,internal0)
         end if
     

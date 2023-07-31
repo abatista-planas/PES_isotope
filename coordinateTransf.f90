@@ -381,19 +381,19 @@ module coordinateTransf
       return
     end subroutine EulerAngles_2_Autosurf
   
-    SUBROUTINE Int_to_Cart(internal,internal_length,mass,ref1,ref2,XDIM,natom1,natom2,internalFunction,cart)
+    SUBROUTINE Int_to_Cart(internal,internal_length,mass,ref1,ref2,XDIM,natom1,natom2,inputCoord,cart)
           
           IMPLICIT NONE
 
-          integer,INTENT(IN) :: internal_length,natom1,natom2,XDIM,internalFunction
+          integer,INTENT(IN) :: internal_length,natom1,natom2,XDIM
           real*8,INTENT(IN) :: internal(internal_length),mass(natom1+natom2),ref1(natom1*3),ref2(natom2*3)
           integer :: intfunc
           real*8,allocatable,INTENT(OUT)  :: cart(:)
           real*8::ref1_temp0(natom1*3),ref2_temp0(natom2*3),cart_temp((natom1+natom2)*3)
-          
+          character(*),INTENT(IN) :: inputCoord
 
           allocate(cart(3*(natom1+natom2)))
-          intfunc = internalFunction
+
           !************** Subroutine definition 
               ! Place your custom function here! 
           !********************************************************
@@ -401,15 +401,15 @@ module coordinateTransf
           ref1_temp0 = ref1! reference vector for frag1 (original frame)
           ref2_temp0 = ref2! reference vector for frag2 (original frame)
 
-          if ( intfunc == 0)then
+          if ( inputCoord == "User")then
               call Int_to_Cart_User(internal,mass,cart_temp)
-            elseif ( intfunc == 1)then
+            elseif ( inputCoord == "Spherical")then
             ! Only for 3D: (for CH3CN-He system: internal coordinates taken as spherical coords.)
             call Int_to_Cart_Spherical(internal,cart_temp,mass,natom1,natom2,ref1_temp0)
-            elseif ( intfunc == 2)then
+            elseif ( inputCoord == "Autosurf") then
             call Int_to_Cart_ZYZ(internal,XDIM,cart_temp,mass,natom1,natom2, ref1_temp0, ref2_temp0)
             ! Only if internal is already in cartesian
-            elseif ( intfunc == -1)then
+            elseif ( inputCoord == "Cartesian")then
            
                     cart_temp = internal 
           endif
@@ -417,6 +417,54 @@ module coordinateTransf
           cart = cart_temp
               
     END SUBROUTINE Int_to_Cart
+
+
+    SUBROUTINE ZYZ_to_OutPut(internal,mass,ref1,ref2,XDIM,natom1,natom2,outputCoord,internal0,internal0_length)
+          
+          IMPLICIT NONE
+
+          integer,INTENT(IN) :: internal0_length,natom1,natom2,XDIM
+          real*8,INTENT(IN) :: internal(XDIM),mass(natom1+natom2),ref1(natom1*3),ref2(natom2*3)
+          integer :: intfunc
+          real*8,allocatable,INTENT(OUT)  :: internal0(internal0_length)
+          real*8::ref1_temp0(natom1*3),ref2_temp0(natom2*3),cart_temp((natom1+natom2)*3)
+          character(*),INTENT(IN) :: outputCoord
+
+          allocate(cart(3*(natom1+natom2)))
+
+          !************** Subroutine definition 
+              ! Place your custom function here! 
+          !********************************************************
+          ! make temporary copies of the input data
+          ref1_temp0 = ref1! reference vector for frag1 (original frame)
+          ref2_temp0 = ref2! reference vector for frag2 (original frame)
+
+
+            if (outputCoord=="Autosurf")Then
+                      call EulerAngles_2_Autosurf(XDIM,R_ZYZ,internal0)
+                    elseif (outputCoord=="BiSpherical")Then
+                      call EulerAngles_2_BiSpherical(internal,R_ZYZ,internal0)
+                    elseif ( outputCoord == "Cartesian")then  
+                    elseif ( outputCoord=="User")Then
+                    elseif ( inputCoord == "Spherical")then
+            end if
+
+          ! if ( inputCoord == "User")then
+          !     call Int_to_Cart_User(internal,mass,cart_temp)
+          !   elseif ( inputCoord == "Spherical")then
+          !   ! Only for 3D: (for CH3CN-He system: internal coordinates taken as spherical coords.)
+          !   call Int_to_Cart_Spherical(internal,cart_temp,mass,natom1,natom2,ref1_temp0)
+          !   elseif ( inputCoord == "Autosurf") then
+          !   call Int_to_Cart_ZYZ(internal,XDIM,cart_temp,mass,natom1,natom2, ref1_temp0, ref2_temp0)
+          !   ! Only if internal is already in cartesian
+          !   elseif ( inputCoord == "Cartesian")then
+           
+          !           cart_temp = internal 
+          ! endif
+
+          ! cart = cart_temp
+              
+    END SUBROUTINE ZYZ_to_OutPut
 
     SUBROUTINE Int_to_Cart_ZYZ(internal,XDIM,cart,mass,natom1,natom2,ref1_0,ref2_0)
 
