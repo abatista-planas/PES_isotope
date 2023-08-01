@@ -147,12 +147,12 @@ module testingFunc
 
       real*8::cart(18),cart_model(18),energies(4)
       character(len=1)::Atom_label
-      real*8 :: internal0(6),td(4),err_test,err_tolerance,maxerr_1,maxerr_2
+      real*8 :: td(4),err_test,err_tolerance,maxerr_1,maxerr_2
       integer :: stat2,stat3,i,natoms,int_to_cart_func,XDIM,ptos(3)
       integer :: failedTest_1,counterCase_1,failedTest_2,counterCase_2
       real*8::response1_model(6),response2_model(6),response1(6),response2(6)
       integer :: stat
-
+      real*8,allocatable:: internal0(:)
 
       XDIM=6
       
@@ -204,7 +204,8 @@ module testingFunc
 
       
             Call Get_ISOTOP_COORDINATES(cart,size(cart),internal0,6, "Cartesian", "Autosurf" ,systPath,testArr_Errors = td)
-
+  !  internal,internalLength,internal0_,XDIM,inputCoord,outputCoord,filePath,&
+  !                                     testArr_Errors,newflag
 
 
         !Reporting Error
@@ -289,16 +290,48 @@ module testingFunc
     end SUBROUTINE Print_Test_Results
 
 
+    SUBROUTINE Generate_RandomData(internal,rm,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM,inputCoord,ntest)
+        use helperFunc
+
+        IMPLICIT NONE
+        Integer,INTENT(IN)::XDIM,rm,natom1,natom2,ntest ! rm = random mass
+        real*8, ALLOCATABLE,INTENT(OUT) :: internal(:)
+        real*8 :: pii,threshold,maxdist,passingThrough
+        real*8, INTENT(IN) :: mass(natom1+natom2),mass0(natom1+natom2),ref1_0(natom1*3),ref2_0(natom2*3)
+        character(*),INTENT(IN)::inputCoord
+        real*8, ALLOCATABLE::CasesRand(:,:)
+
+    
+
+   
+        ALLOCATE(CasesRand(rm*(natom1+natom2)+XDIM,ntest + 2000))
+
+        if (inputCoord == "Cartesian")then
+            ALLOCATE(internal(3*(natom1+natom2),ntest + 2000))
+        else
+            ALLOCATE(internal(XDIM,ntest + 2000))
+        end if
+        
+
+        
+        pii=acos(-1d0) 
+   
+
+        call random_seed()
+        call random_number(CasesRand)
 
 
+    end Subroutine Generate_RandomData
 
+
+    
 
     SUBROUTINE Testing_InteratomicDistances(filename,XDIM,inputCoord,outputCoord,test_failed,fileOutputNumber)
         use helperFunc
 
         IMPLICIT NONE
         integer :: i,k,nc
-        real*8, allocatable :: internal(:),internal0(:)
+        real*8, ALLOCATABLE :: internal(:),internal0(:)
         real*8 :: pii,threshold,maxdist,passingThrough
         real*8, allocatable :: CasesRand(:,:)
         real*8 :: Max_test_dist,testArr_Errors(4),err
@@ -323,7 +356,7 @@ module testingFunc
         call random_number(CasesRand)
 
 
-        allocate(internal(XDIM),internal0(XDIM))
+        allocate(internal(XDIM))!,internal0(XDIM))
 
 
 
@@ -363,7 +396,7 @@ module testingFunc
                 Write(*,*)internal,XDIM,inputCoord,outputCoord,filename
               
                 
-                call Get_ISOTOP_COORDINATES(internal,XDIM,internal0,XDIM,inputCoord,outputCoord,filename,testArr_Errors)
+                call Get_ISOTOP_COORDINATES(internal,size(internal),internal0,XDIM,inputCoord,outputCoord,filename,testArr_Errors)
 
                 
                 passingThrough = 0d0
@@ -411,17 +444,177 @@ module testingFunc
         testName = trim(testName);
 
         call Print_Test_Results(testName,Max_test_dist,inputCoord,outputCoord,counterCase,counterCase - test_failed)
-            ! write(fileOutputNumber,*)
-            ! write(fileOutputNumber,*)"TEST NAME: Testing_InteratomicDistances"
-            ! write(fileOutputNumber,*)"System Features : Dimension/ Number of Atoms", XDIM
-            ! write(fileOutputNumber,*)"Max_test_dist : ", Max_test_dist
-            ! write(fileOutputNumber,*)"Int2Cart = ",internalFunction
-            ! write(fileOutputNumber,*)"Number of Tests", counterCase
-            ! write(fileOutputNumber,*)"Failed Tests: ", test_failed, " out of",test_number 
-            ! write(fileOutputNumber,*)
+            write(fileOutputNumber,*)
+            write(fileOutputNumber,*)"TEST NAME: ", testName
+            write(fileOutputNumber,*)"System Features : Dimension/ Number of Atoms", XDIM
+            write(fileOutputNumber,*)"Max_test_dist : ", Max_test_dist
+            write(fileOutputNumber,*)"Input/Output Coordinates: ",inputCoord," / ",outputCoord
+            write(fileOutputNumber,*)"Number of Tests", counterCase
+            write(fileOutputNumber,*)"Failed Tests: ", test_failed, " out of",test_number 
+            write(fileOutputNumber,*)
       
 
     END SUBROUTINE Testing_InteratomicDistances
+
+    SUBROUTINE Testing_InteratomicDistances_v2(filename,XDIM,inputCoord,outputCoord,test_failed,fileOutputNumber)
+        use helperFunc
+        use mathFunc
+        use coordinateTransf
+  
+      
+        IMPLICIT NONE
+        integer,INTENT(IN) :: XDIM,szi
+        character(*),INTENT(IN) :: filePath,inputCoord,outputCoord
+        real*8, INTENT(IN):: internal(szi)
+        real*8,allocatable, INTENT(OUT):: internal0_(:)
+        real*8, optional :: testArr_Errors(4)
+     
+
+        integer :: natom1,natom2,natom
+        real*8, allocatable :: ref1_0(:),ref2_0(:),mass(:),mass0(:),ref1_temp0(:),ref2_temp0(:),cart(:)
+        real*8 ::  R_ZYZ(7)
+        Integer :: Xdim_file,internal0_length,internalLength
+        
+     
+        integer :: i,k,nc
+        real*8, ALLOCATABLE :: internal(:),internal0(:)
+        real*8 :: pii,threshold,maxdist,passingThrough
+        real*8, allocatable :: CasesRand(:,:)
+        real*8 :: Max_test_dist,testArr_Errors(4),err
+        integer :: counterCase, ntest
+        character(*),INTENT(IN)::filename,inputCoord,outputCoord
+        Integer,INTENT(OUT)::test_failed
+        Integer,INTENT(IN)::XDIM
+        integer,optional:: fileOutputNumber
+        character(len=50)::testName
+        
+
+        real*8 ::  td(4)
+
+
+        natom = natom1 + natom2
+
+   
+
+         Call Read_File(filename,mass,mass0,natom1,natom2,ref1_0,ref2_0,Xdim_file)
+
+
+
+    
+
+        ntest=10
+
+        call Generate_RandomData(internal,rm,mass,mass0,natom1,natom2,ref1_0,ref2_0,XDIM,inputCoord,ntest)   
+
+        ! ALLOCATE(CasesRand(XDIM,test_number + 2000))
+        ! pii=acos(-1d0) 
+        ! Max_test_dist =0
+        ! err = 10d0**(-8)
+        ! counterCase = 0
+
+        ! call random_seed()
+        ! call random_number(CasesRand)
+
+
+        ! allocate(internal(XDIM))!,internal0(XDIM))
+
+
+
+        !     threshold = 0.9993d0
+        !     nc = 0
+
+        !     counterCase = 0
+        !     test_failed = 0
+        !     Max_test_dist = 0
+            
+            
+
+        !     do while (counterCase < test_number)
+        !         nc=nc+1
+        !         passingThrough =0d0
+
+        !         internal(1)=CasesRand(1,nc)*10d0 + 5d0
+        !         internal(2)=(CasesRand(2,nc)*2d0-1d0)*threshold
+        !         if (XDIM > 2) then  
+        !             if (XDIM == 3) then 
+        !                 internal(3)=CasesRand(3,nc)*2d0*pii 
+        !             else
+        !                 internal(3)=(CasesRand(3,nc)*2d0-1d0)*threshold 
+        !             end if
+        !         end if
+        !         if (XDIM>3)then  
+        !             internal(4)=CasesRand(4,nc)*2d0*pii 
+        !         end if
+        !         if (XDIM>4)then  
+        !             internal(5)=CasesRand(5,nc)*2d0*pii 
+        !         end if
+        !         if (XDIM>5)then  
+        !             internal(6)=CasesRand(6,nc)*2d0*pii 
+        !         end if
+
+
+        !         Write(*,*)internal,XDIM,inputCoord,outputCoord,filename
+              
+                
+        !         call Get_ISOTOP_COORDINATES(internal,size(internal),internal0,XDIM,inputCoord,outputCoord,filename,testArr_Errors)
+
+                
+        !         passingThrough = 0d0
+        !         if (dabs(internal0(2))< threshold  ) then
+        !             passingThrough = 1d0
+        !             if (size(internal0)>3)then
+        !                 if (dabs(internal0(3)) < threshold)then
+        !                     passingThrough = 1d0
+        !                 else
+        !                     passingThrough = 0d0
+        !                 end if 
+        !             end if
+                
+
+        !         endif
+
+
+        !         if (passingThrough>0d0  ) then 
+
+                    
+                    
+                    
+            
+        !             counterCase = counterCase + 1
+        !             maxdist = MAXVAL(testArr_Errors);
+        !             if (maxdist > Max_test_dist ) then 
+        !                 Max_test_dist = maxdist 
+        !             endif
+                
+        !             if (maxdist > err  ) then 
+        !                 write(fileOutputNumber,*)"--------------------------------------- "
+        !                 write(fileOutputNumber,*)"Intermolecular Distances Test : ", testArr_Errors
+        !                 write(fileOutputNumber,*)"Internal : ", internal
+        !                 write(fileOutputNumber,*)"Internal0 : ",internal0
+        !                 write(fileOutputNumber,*)"----------------------------------------"
+        !                 test_failed = test_failed + 1
+
+        !             endif
+        !         endif
+        !         !End Testing Section
+        ! enddo 
+
+        ! !testName = "Interatomic Distances("XDIM//"D), ifun: "//internalFunction
+        ! write(testName,'(A(I1)A)') "Interatomic Distances(",XDIM,"D)"
+        ! testName = trim(testName);
+
+        ! call Print_Test_Results(testName,Max_test_dist,inputCoord,outputCoord,counterCase,counterCase - test_failed)
+        !     write(fileOutputNumber,*)
+        !     write(fileOutputNumber,*)"TEST NAME: ", testName
+        !     write(fileOutputNumber,*)"System Features : Dimension/ Number of Atoms", XDIM
+        !     write(fileOutputNumber,*)"Max_test_dist : ", Max_test_dist
+        !     write(fileOutputNumber,*)"Input/Output Coordinates: ",inputCoord," / ",outputCoord
+        !     write(fileOutputNumber,*)"Number of Tests", counterCase
+        !     write(fileOutputNumber,*)"Failed Tests: ", test_failed, " out of",test_number 
+        !     write(fileOutputNumber,*)
+      
+
+    END SUBROUTINE Testing_InteratomicDistances_v2
 
 
 

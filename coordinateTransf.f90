@@ -419,18 +419,20 @@ module coordinateTransf
     END SUBROUTINE Int_to_Cart
 
 
-    SUBROUTINE ZYZ_to_OutPut(internal,mass,ref1,ref2,XDIM,natom1,natom2,outputCoord,internal0,internal0_length)
+    SUBROUTINE ZYZ_to_OutPut(internal,internal0,internal0_length,R_ZYZ,ref1,ref2&
+                                ,XDIM,natom1,natom2,outputCoord)
           
           IMPLICIT NONE
 
-          integer,INTENT(IN) :: internal0_length,natom1,natom2,XDIM
-          real*8,INTENT(IN) :: internal(XDIM),mass(natom1+natom2),ref1(natom1*3),ref2(natom2*3)
-          integer :: intfunc
-          real*8,allocatable,INTENT(OUT)  :: internal0(internal0_length)
-          real*8::ref1_temp0(natom1*3),ref2_temp0(natom2*3),cart_temp((natom1+natom2)*3)
+          integer,INTENT(IN) :: natom1,natom2,XDIM,internal0_length
+          real*8,INTENT(IN) :: R_ZYZ(7),ref1(natom1*3),ref2(natom2*3),internal(XDIM)
+          real*8,INTENT(INOUT)  :: internal0(internal0_length)
+          real*8::ref1_temp0(natom1*3),ref2_temp0(natom2*3)
           character(*),INTENT(IN) :: outputCoord
+   
+          
 
-          allocate(cart(3*(natom1+natom2)))
+          
 
           !************** Subroutine definition 
               ! Place your custom function here! 
@@ -446,7 +448,7 @@ module coordinateTransf
                       call EulerAngles_2_BiSpherical(internal,R_ZYZ,internal0)
                     elseif ( outputCoord == "Cartesian")then  
                     elseif ( outputCoord=="User")Then
-                    elseif ( inputCoord == "Spherical")then
+                    elseif ( outputCoord== "Spherical")then
             end if
 
           ! if ( inputCoord == "User")then

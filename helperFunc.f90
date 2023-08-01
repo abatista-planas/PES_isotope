@@ -295,24 +295,23 @@ module helperFunc
   
     END SUBROUTINE convert_isotopic_coordinates
 
-    SUBROUTINE Get_ISOTOP_COORDINATES(internal,internalLength,internal0,XDIM,inputCoord,outputCoord,filePath,&
-                                      testArr_Errors,newflag)
+    SUBROUTINE Get_ISOTOP_COORDINATES(internal,szi,internal0_,XDIM,inputCoord,outputCoord,filePath,testArr_Errors)
         use mathFunc
         use coordinateTransf
   
       
         IMPLICIT NONE
-        integer,INTENT(IN) :: XDIM,internalLength
+        integer,INTENT(IN) :: XDIM,szi
         character(*),INTENT(IN) :: filePath,inputCoord,outputCoord
-        real*8, INTENT(IN):: internal(internalLength)
-        real*8, INTENT(OUT):: internal0(XDIM)
+        real*8, INTENT(IN):: internal(szi)
+        real*8,allocatable, INTENT(OUT):: internal0_(:)
         real*8, optional :: testArr_Errors(4)
-        integer,optional :: newflag
+     
 
         integer :: natom1,natom2,natom
         real*8, allocatable :: ref1_0(:),ref2_0(:),mass(:),mass0(:),ref1_temp0(:),ref2_temp0(:),cart(:)
         real*8 ::  R_ZYZ(7)
-        Integer :: Xdim_file
+        Integer :: Xdim_file,internal0_length,internalLength
         
         integer :: initflag
         save initflag
@@ -343,9 +342,18 @@ module helperFunc
         if(natom1>1)call rm_cmass(ref1_temp0,mass0(1:natom1),natom1,natom1)
         if(natom2>1)call rm_cmass(ref2_temp0,mass0(natom1+1:natom),natom2,natom2)  
 
+        if (outputCoord == "Cartesian")then
+          
+              internal0_length = 3*(natom1+natom2)
+          else
+              internal0_length = XDIM
+        endif
+
+        allocate(internal0_(internal0_length))
+
         
       
-        call Int_to_Cart(internal,internalLength,mass,ref1_temp0,ref2_temp0,XDIM,natom1,natom2,inputCoord,cart)
+        call Int_to_Cart(internal,szi,mass,ref1_temp0,ref2_temp0,XDIM,natom1,natom2,inputCoord,cart)
 
 
 
@@ -356,13 +364,9 @@ module helperFunc
          call convert_isotopic_coordinates(cart,R_ZYZ,mass,mass0,natom1,natom2,ref1_temp0,ref2_temp0,XDIM,td)
         end if 
 
-        if (outputCoord=="Autosurf")Then
-                      call EulerAngles_2_Autosurf(XDIM,R_ZYZ,internal0)
-                    elseif (outputCoord=="BiSpherical")Then
-                      call EulerAngles_2_BiSpherical(internal,R_ZYZ,internal0)
-        end if
     
-
+        call ZYZ_to_OutPut(internal,internal0_,internal0_length,R_ZYZ,ref1_temp0,ref2_temp0,XDIM,&
+                            natom1,natom2,outputCoord)
 
     END SUBROUTINE Get_ISOTOP_COORDINATES
   
