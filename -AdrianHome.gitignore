@@ -32,8 +32,5 @@
 *.app
 *.x
 
-# text data file
-*.dat
-*.txt
-*.xyz
+.idea/
 
