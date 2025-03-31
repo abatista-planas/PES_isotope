@@ -1,0 +1,7 @@
+2               ! XDIM
+2               ! [natom1] number of atoms in frag1
+1               ! [natom2] number of atoms in frag2
+27d0        28.0855d0            	0d0     0d0  1.05d0
+33d0        32.065d0   		        0d0 	0d0  -1.05d0
+41d0  	    39.948d0 
+
