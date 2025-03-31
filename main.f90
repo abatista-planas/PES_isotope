@@ -1,5 +1,7 @@
 PROGRAM TESTING
-  
+
+
+  use helperFunc
   IMPLICIT NONE
   
 
@@ -35,7 +37,7 @@ PROGRAM TESTING
 
   call cpu_time(start)
   do i=1,100000
-    Call Get_ISOTOP_COORDINATES(internal,internal0,XDIM,'./input.dat')
+    Call Get_ISOTOP_COORDINATES(internal,internal0,XDIM,interFunc,'./input.dat')
   end do
   call cpu_time(finish)
   

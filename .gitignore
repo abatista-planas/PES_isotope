@@ -34,6 +34,6 @@
 
 # text data file
 *.dat
+*.txt
+*.xyz
 
-#Cmake
-Makefile
