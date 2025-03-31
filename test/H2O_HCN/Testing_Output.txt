@@ -1,0 +1,24 @@
+ ******************************************************************************
+ Test Day and Time Record
+ Month / Day / Year:            4 /          20 /        2023
+ Hr    / Min / Sec :           15 :          19 :          21
+
+ TEST NAME: Testing_InteratomicDistances
+ System Features : Dimension/ Number of Atoms           5 /           3           3
+ Max_test_dist :    7.1054273576010019E-014
+ Int2Cart =            0
+ Number of Tests       10000
+ Failed Tests:            0  out of       10000
+
+ ******************************************************************************
+ Test Day and Time Record
+ Month / Day / Year:            4 /          20 /        2023
+ Hr    / Min / Sec :           18 :          15 :          44
+
+ TEST NAME: Testing_InteratomicDistances
+ System Features : Dimension/ Number of Atoms           5 /           3           3
+ Max_test_dist :    8.5265128291212022E-014
+ Int2Cart =            0
+ Number of Tests       10000
+ Failed Tests:            0  out of       10000
+
