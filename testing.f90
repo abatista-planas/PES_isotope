@@ -2,12 +2,12 @@ program comprenhensive_unit_test
 
     use mod_types, only : int32, real64
     use helper_functions, only : file_checking
-    use testing_auxiliar_functions, only : test_cart_to_autosurf, interatomic_distance_test,performance
+    use testing_auxiliar_functions, only : test_cart_to_autosurf, interatomic_distance_test, performance
 
     implicit none
-    integer (int32), parameter ::file_out_number=12,test_number = 100000
-    integer (int32):: date_time (8),failed_test
-    character (len = 10, kind = 1),dimension (3) ::big_ben
+    integer (int32), parameter :: file_out_number = 12, test_number = 100000
+    integer (int32) :: date_time (8), failed_test
+    character (len = 10, kind = 1), dimension (3) :: big_ben
 
 
     ! Create a report in './Testing_Output.txt'
@@ -30,11 +30,9 @@ program comprenhensive_unit_test
     call interatomic_distance_test("./test/6DCase/input.dat", 6, "Autosurf", "Autosurf", failed_test, file_out_number)
 
     !Performance
-    call performance(ntest=1000000)
-
+    call performance(ntest = 1000000)
 
     close(file_out_number)
-
 
 end program comprenhensive_unit_test
 
