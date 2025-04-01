@@ -1,8 +1,7 @@
 program example
 
     use mod_types, only : real64, int32
-    use helper_functions
-    USE OMP_LIB
+    use helper_functions,only: get_pes_coordinates
     implicit none
 
     integer(int32), parameter :: XDIM = 6
@@ -17,7 +16,7 @@ program example
     real(real64), dimension(6) :: isotope_internal_coordinate
     real(real64), dimension(6,dataset_size) :: isotope_internal_coordinate_array
     real(real64), allocatable :: pes_internal_coordinate(:)
-    INTEGER :: thread_id
+
 
     isotope_internal_coordinate = [ 10d0,&
                                     20d0*PII/180d0,&
@@ -33,8 +32,8 @@ program example
             XDIM, & ! System Dimension
             ISOTOPE_COORDINATE_FORMAT, &
             PES_COORDINATE_FORMAT, &
-            PATH_TO_FILE) ! File must contain the cartesian coordinates and masses of atoms for each
-!    ! molecule of original system and its isotope
+            PATH_TO_FILE) ! File must contain the cartesian coordinates and masses of atoms for each molecule
+
 
 
 end program example

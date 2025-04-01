@@ -14,8 +14,10 @@ contains
                                         xdim, &
                                         internal0, &
                                         file_output_number)
+
         use math_functions,only: cosine_law
         implicit none
+
         integer (int32), intent (inout) :: counterCase, test_failed
         integer (int32), intent (in) :: xdim, ptos(3), natom1, natom2
         real (real64), intent (in) :: err_tolerance, internal0(xdim)
@@ -96,6 +98,7 @@ contains
             , file_output_number)
 
         implicit none
+
         integer (int32), intent (inout) :: counterCase, test_failed
         integer (int32), intent (in) :: natoms, xdim
         real (real64), intent (in) :: td(4), err_tolerance
@@ -153,7 +156,6 @@ contains
 
 
     subroutine test_cart_to_autosurf(system_path, data_path, file_output_number)
-        !use math_functions,only: check
         use helper_functions,only : get_pes_coordinates
 
         implicit none
@@ -288,7 +290,7 @@ contains
                                     xdim, &
                                     inputCoord, &
                                     ntest)
-        use helper_functions, only:
+
         use coordinateTransf,only: int_to_cart
 
         implicit none
@@ -377,6 +379,7 @@ contains
     end subroutine generate_random_data
 
     subroutine MassGenerator(rm, seedArr, sz1, sz2, xdim, natom, mass, mass0, nmass)
+
         implicit none
         integer (int32), intent (in) :: sz1, sz2, natom, rm, xdim
         real (real64), intent (in) :: seedArr(sz1, sz2), mass(natom), mass0(natom)
@@ -407,12 +410,12 @@ contains
 
 
     subroutine generate_random_data2(internal, rm, mass, mass0, natom1, natom2, ref1_0, ref2_0, xdim, inputCoord, ntest)
-        use helper_functions
+        use helper_functions,only:
 
         implicit none
         integer (int32), intent (in) :: xdim, rm, natom1, natom2, ntest ! rm = random mass
         real (real64), allocatable, intent (out) :: internal(:, :)
-        real (real64) :: PII, threshold, maxdist, passingThrough
+        real (real64) ::threshold, maxdist, passingThrough
         real (real64), intent (in) :: mass(natom1 + natom2), mass0(natom1 + natom2), ref1_0(natom1 * 3), ref2_0(natom2 * 3)
         character(*), intent (in) :: inputCoord
         real (real64), allocatable :: rand_cases(:, :)
@@ -424,8 +427,6 @@ contains
         else
             allocate(internal(xdim, ntest + 2000))
         end if
-
-        PII = acos(-1d0)
 
         call random_seed()
         call random_number(rand_cases)
@@ -548,9 +549,8 @@ contains
     subroutine interatomic_distance_test_v2(filename, xdim, inputCoord, outputCoord, test_failed, rm, file_output_number)
 
         use helper_functions,only: read_file,convert_isotopic_coordinates
-        use math_functions!,only: genera
         use coordinateTransf,only:zyz_to_output,int_to_cart
-
+        use math_functions,only: remove_center_of_mass
         implicit none
 
         character(*), intent (in) :: filename, inputCoord, outputCoord
