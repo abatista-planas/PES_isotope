@@ -170,9 +170,7 @@ module helper_functions
           ! find new relative position of the original CM of frag2 (with respect to the original CM of frag1)
   
           call center_of_mass(cart,cm,mass0,natom1+natom2,natom2)
-    
-          !write(*,*)"cm",cm
-  
+
   
           ! find spherical coordinates of the c.m. of frag2
           R_ZYZ(1) = dsqrt(cm(1)**2+cm(2)**2+cm(3)**2)! "R"! Norm2
