@@ -1,47 +1,39 @@
-PROGRAM TESTING
+program example
+
+    use mod_types, only : real64, int32
+    use helper_functions,only: get_pes_coordinates
+    implicit none
+
+    integer(int32), parameter :: XDIM = 6
+    integer(int32), parameter :: ISOTOPE_COORDINATE_SIZE = 6
+    real(real64), parameter :: PII = DACOS(-1d0)
+    character (len = *, kind = 1), parameter :: ISOTOPE_COORDINATE_FORMAT = "Autosurf"
+    character (len = *, kind = 1), parameter :: PES_COORDINATE_FORMAT = "Autosurf"
+    character (len = *, kind = 1), parameter :: PATH_TO_FILE = "./test/6DCase/input.dat"
+
+    integer(int32), parameter :: dataset_size = 10
+    integer(int32):: i
+    real(real64), dimension(6) :: isotope_internal_coordinate
+    real(real64), dimension(6,dataset_size) :: isotope_internal_coordinate_array
+    real(real64), allocatable :: pes_internal_coordinate(:)
 
 
-  use helperFunc
-  IMPLICIT NONE
-  
+    isotope_internal_coordinate = [ 10d0,&
+                                    20d0*PII/180d0,&
+                                    30d0*PII/180d0,&
+                                    40d0*PII/180d0,&
+                                    50d0*PII/180d0,&
+                                    60d0*PII/180d0]
 
-  real*8:: internal(5),internal0(5)
-  integer :: XDIM,i
-  ! 'interFunc' defines the Int_to_Cart Function 
-  ![Options: 0 --> User int_to_Cart , 1 --> Spherical_to_Cart, 2 --> ZYZ_to_Cart  ]
-  integer :: interFunc 
-  real*8::pii,start, finish
-  
-  
-  pii = DACOS(-1d0)
-  
-  XDIM = 5
-  interFunc = 0
-
-  internal(1) = 5d0
-  internal(2) = 20d0*pii/180d0
-  internal(3) = 30d0*pii/180d0  
-  internal(4) = 40d0*2d0*pii/180d0
-  internal(5) = 50d0*2d0*pii/180d0
+    ! Return the coordinates of the calculated PES
+    call get_pes_coordinates(pes_internal_coordinate, &
+            isotope_internal_coordinate, &
+            ISOTOPE_COORDINATE_SIZE, &
+            XDIM, & ! System Dimension
+            ISOTOPE_COORDINATE_FORMAT, &
+            PES_COORDINATE_FORMAT, &
+            PATH_TO_FILE) ! File must contain the cartesian coordinates and masses of atoms for each molecule
 
 
-  Call Get_ISOTOP_COORDINATES(internal,internal0,XDIM,interFunc,'./input.dat')
- 
-  Write(*,*) "R : ",internal(1),internal0(1)
-  Write(*,*) "theta1 :",internal(2),internal0(2),DABS(internal(2)-internal0(2))
-  Write(*,*) "theta2 :",internal(3),internal0(3),DABS(internal(3)-internal0(3))
-  Write(*,*) "phi1 :",internal(4),internal0(4),DABS(internal(4)-internal0(4))
-  Write(*,*) "phi2 :",internal(5),internal0(5),DABS(internal(5)-internal0(5))
-  
-  
 
-  call cpu_time(start)
-  do i=1,100000
-    Call Get_ISOTOP_COORDINATES(internal,internal0,XDIM,interFunc,'./input.dat')
-  end do
-  call cpu_time(finish)
-  
-  print '("Time = ",f6.3," seconds.")',finish-start
-
-  
-END PROGRAM TESTING
+end program example
