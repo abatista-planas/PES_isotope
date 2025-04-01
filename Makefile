@@ -4,16 +4,12 @@ F90 = gfortran # compile with gfortran
 
 CMPLFLG = -c -O3 -fbacktrace
 
-OBJS =   mod_types.o SUBROUTINES_F77.o math_functions.o coordinateTransf.o helper_functions.o  main.o
-OBJS_Test =  mod_types.o SUBROUTINES_F77.o math_functions.o coordinateTransf.o helper_functions.o testingFunc.o  testing.o
-OBJS_Par =   mod_types.o SUBROUTINES_F77.o math_functions.o coordinateTransf.o helper_functions.o  parallel_example.o
+OBJS =   mod_types.o SUBROUTINES_F77.o math_functions.o coordinate_transformation.o helper_functions.o  main.o
+OBJS_Test =  mod_types.o SUBROUTINES_F77.o math_functions.o coordinate_transformation.o helper_functions.o testing_primitive_functions.o  testing.o
+
 all : $(OBJS)
 	$(F90) $(OBJS) -o ejec.x
 	./ejec.x
-
-par : $(OBJS_Par)
-	$(F90) $(OBJS_Par) -o paralel.x -fopenmp
-	./paralel.x
 
 test: $(OBJS_Test)
 	$(F90) $(OBJS_Test) -o ejec_test.x
