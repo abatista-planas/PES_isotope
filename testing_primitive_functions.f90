@@ -206,7 +206,7 @@ contains
             end if
 
             call get_pes_coordinates(internal0, cart, size(cart), 6, "Cartesian", "Autosurf", system_path, errors = td)
-            !  internal,internalLength,internal0_,xdim,inputCoord,outputCoord,filePath,&
+            !  internal,internalLength,internal0_,xdim,input_format,outputCoord,filePath,&
             !                                     testArr_Errors,newflag
 
 
@@ -241,10 +241,10 @@ contains
     end subroutine test_cart_to_autosurf
 
 
-    subroutine print_test_results(testName, maxErr, inputCoord, outputCoord, ntest, success_test)
+    subroutine print_test_results(testName, maxErr, input_format, outputCoord, ntest, success_test)
 
         implicit none
-        character(*), intent (in) :: testName, inputCoord, outputCoord
+        character(*), intent (in) :: testName, input_format, outputCoord
         integer (int32), intent (in) :: ntest, success_test
         character (len = 25) :: f_res1, f_res2
         character (len = 7) :: str, str1
@@ -270,7 +270,7 @@ contains
         write(*, '(A, I8, A, I8, A, I8)') "                                Num. Test: ", ntest, "     ---> success: "&
                 , success_test, " / failed : ", failed
         write(*, '(A, F21.15)') "                                Error Max: ", maxErr
-        write(*, *) "                               Input/Output Coordinates: " // achar(27) // '[33m' // inputCoord // " / "&
+        write(*, *) "                               Input/Output Coordinates: " // achar(27) // '[33m' // input_format // " / "&
                 // outputCoord // achar(27) // '[0m)'
         write(*, *)
 
@@ -288,7 +288,7 @@ contains
                                     ref1_0, &
                                     ref2_0, &
                                     xdim, &
-                                    inputCoord, &
+                                    input_format, &
                                     ntest)
 
         use coordinateTransf,only: int_to_cart
@@ -299,7 +299,7 @@ contains
         real (real64), intent (out) :: new_mass(natom1 + natom2, ntest)
         real (real64) :: PII, threshold, maxdist, passingThrough, iter(xdim), rmin, rmax
         real (real64), intent (in) :: mass(natom1 + natom2), mass0(natom1 + natom2), ref1_0(natom1 * 3), ref2_0(natom2 * 3)
-        character(*), intent (in) :: inputCoord
+        character(*), intent (in) :: input_format
         real (real64), allocatable :: rand_cases(:, :), cart(:)
         real (real64) :: ref1_temp0(natom1 * 3), ref2_temp0(natom2 * 3), nm(natom1 + natom2, ntest), Autosurf(xdim, ntest)
 
@@ -356,9 +356,9 @@ contains
             end if
         end do
 
-        if (inputCoord=="Autosurf")then
+        if (input_format=="Autosurf")then
             internal = Autosurf
-        elseif (inputCoord == "Cartesian")then
+        elseif (input_format == "Cartesian")then
             do i = 1, ntest
                 call int_to_cart( Autosurf(:, i), &
                      xdim, &
@@ -409,20 +409,20 @@ contains
     end subroutine MassGenerator
 
 
-    subroutine generate_random_data2(internal, rm, mass, mass0, natom1, natom2, ref1_0, ref2_0, xdim, inputCoord, ntest)
-        use helper_functions,only:
+    subroutine generate_random_data2(internal, rm, mass, mass0, natom1, natom2, ref1_0, ref2_0, xdim, input_format, ntest)
+
 
         implicit none
         integer (int32), intent (in) :: xdim, rm, natom1, natom2, ntest ! rm = random mass
         real (real64), allocatable, intent (out) :: internal(:, :)
         real (real64) ::threshold, maxdist, passingThrough
         real (real64), intent (in) :: mass(natom1 + natom2), mass0(natom1 + natom2), ref1_0(natom1 * 3), ref2_0(natom2 * 3)
-        character(*), intent (in) :: inputCoord
+        character(*), intent (in) :: input_format
         real (real64), allocatable :: rand_cases(:, :)
 
         allocate(rand_cases(rm * (natom1 + natom2) + xdim, ntest + 2000))
 
-        if (inputCoord == "Cartesian")then
+        if (input_format == "Cartesian")then
             allocate(internal(3 * (natom1 + natom2), ntest + 2000))
         else
             allocate(internal(xdim, ntest + 2000))
@@ -434,7 +434,7 @@ contains
     end subroutine generate_random_data2
 
 
-    subroutine interatomic_distance_test(filename, xdim, inputCoord, outputCoord, test_failed, file_output_number)
+    subroutine interatomic_distance_test(filename, xdim, input_format, outputCoord, test_failed, file_output_number)
         use helper_functions,only:get_pes_coordinates
 
         implicit none
@@ -444,7 +444,7 @@ contains
         real (real64), allocatable :: rand_cases(:, :)
         real (real64) :: Max_test_dist, testArr_Errors(4), err
         integer (int32) :: counterCase, test_number
-        character(*), intent (in) :: filename, inputCoord, outputCoord
+        character(*), intent (in) :: filename, input_format, outputCoord
         integer (int32), intent (out) :: test_failed
         integer (int32), intent (in) :: xdim
         integer (int32), optional :: file_output_number
@@ -493,7 +493,7 @@ contains
                 internal(6) = rand_cases(6, nc) * 2d0 * PII
             end if
 
-            call get_pes_coordinates(internal0, internal, size(internal), xdim, inputCoord, outputCoord, filename, testArr_Errors)
+            call get_pes_coordinates(internal0, internal, size(internal), xdim, input_format, outputCoord, filename, testArr_Errors)
 
             passingThrough = 0d0
             if (dabs(internal0(2))< threshold) then
@@ -533,12 +533,12 @@ contains
         write(testName, '(A(I1)A)') "Interatomic Distances(", xdim, "D)"
         testName = trim(testName);
 
-        call print_test_results(testName, Max_test_dist, inputCoord, outputCoord, counterCase, counterCase - test_failed)
+        call print_test_results(testName, Max_test_dist, input_format, outputCoord, counterCase, counterCase - test_failed)
         write(file_output_number, *)
         write(file_output_number, *)"TEST NAME: ", testName
         write(file_output_number, *)"System Features : Dimension/ Number of Atoms", xdim
         write(file_output_number, *)"Max_test_dist : ", Max_test_dist
-        write(file_output_number, *)"Input/Output Coordinates: ", inputCoord, " / ", outputCoord
+        write(file_output_number, *)"Input/Output Coordinates: ", input_format, " / ", outputCoord
         write(file_output_number, *)"Number of Tests", counterCase
         write(file_output_number, *)"Failed Tests: ", test_failed, " out of", test_number
         write(file_output_number, *)
@@ -546,14 +546,14 @@ contains
     end subroutine interatomic_distance_test
 
 
-    subroutine interatomic_distance_test_v2(filename, xdim, inputCoord, outputCoord, test_failed, rm, file_output_number)
+    subroutine interatomic_distance_test_v2(filename, xdim, input_format, outputCoord, test_failed, rm, file_output_number)
 
         use helper_functions,only: read_file,convert_isotopic_coordinates
         use coordinateTransf,only:zyz_to_output,int_to_cart
         use math_functions,only: remove_center_of_mass
         implicit none
 
-        character(*), intent (in) :: filename, inputCoord, outputCoord
+        character(*), intent (in) :: filename, input_format, outputCoord
         integer (int32), intent (out) :: test_failed
         integer (int32), intent (in) :: xdim
         integer (int32), intent (in) :: rm! random mass switcher  rm =1 random mass, rm =0 new mass = mass0, rm =-1 new_mass=mass of file
@@ -562,7 +562,7 @@ contains
         integer (int32) :: natom1, natom2, natom
         real (real64), allocatable :: ref1_0(:), ref2_0(:), new_mass(:, :), nmass(:), mass(:), mass0(:), &
                 ref1_temp0(:), ref2_temp0(:), cart(:)
-        real (real64) :: R_ZYZ(7)
+        real (real64) :: general_coordinates(7)
         integer (int32) :: xdim_file, internalLength
         integer (int32) :: i, k, nc
         real (real64), allocatable :: internal(:, :), internal0(:)
@@ -589,7 +589,7 @@ contains
 
         allocate(new_mass(natom1 + natom2, ntest), new_mass_(natom1 + natom2, ntest))
 
-        if (inputCoord == "Cartesian")then
+        if (input_format == "Cartesian")then
             szi = 3 * (natom1 + natom2)
         else
             szi = xdim
@@ -608,7 +608,7 @@ contains
                                     ref1_0, &
                                     ref2_0, &
                                     xdim, &
-                                    inputCoord, &
+                                    input_format, &
                                     ntest)
 
         allocate(ref1_temp0(natom1 * 3), ref2_temp0(natom2 * 3), nmass(natom))
@@ -636,10 +636,10 @@ contains
             internal_i = internal(:, nc)
             nmass = new_mass(:, nc)
 
-            call int_to_cart(internal_i, szi, nmass, ref1_temp0, ref2_temp0, xdim, natom1, natom2, inputCoord, cart)
+            call int_to_cart(internal_i, szi, nmass, ref1_temp0, ref2_temp0, xdim, natom1, natom2, input_format, cart)
 
             call convert_isotopic_coordinates(  cart, &
-                                                R_ZYZ, &
+                                                general_coordinates, &
                                                 nmass, &
                                                 mass0, &
                                                 natom1, &
@@ -653,7 +653,7 @@ contains
             call zyz_to_output( internal_i, &
                                 internal0_, &
                                 internal0_length, &
-                                R_ZYZ, &
+                                general_coordinates, &
                                 ref1_temp0, &
                                 ref2_temp0, &
                                 xdim, &
@@ -719,13 +719,13 @@ contains
 
         write(testName, '(A(I1)A)') "Interatomic Distances(", xdim, "D)" // massStatement
         testName = trim(testName);
-        call print_test_results(testName, Max_test_dist, inputCoord, outputCoord, counterCase, counterCase - test_failed)
+        call print_test_results(testName, Max_test_dist, input_format, outputCoord, counterCase, counterCase - test_failed)
 
         write(file_output_number, *)
         write(file_output_number, *)"TEST NAME: ", testName
         write(file_output_number, *)"System Features : Dimension/ Number of Atoms", xdim
         write(file_output_number, *)"Max_test_dist : ", Max_test_dist
-        write(file_output_number, *)"Input/Output Coordinates: ", inputCoord, " / ", outputCoord
+        write(file_output_number, *)"Input/Output Coordinates: ", input_format, " / ", outputCoord
         write(file_output_number, *)"Number of Tests", counterCase
         write(file_output_number, *)"Failed Tests: ", test_failed, " out of", ntest
         write(file_output_number, *)
@@ -736,13 +736,13 @@ contains
     end subroutine interatomic_distance_test_v2
 
 
-     subroutine axis_change_test(filename,inputCoord,test_failed,file_output_number)
+     subroutine axis_change_test(filename,input_format,test_failed,file_output_number)
          use helper_functions,only : convert_isotopic_coordinates
          use math_functions, only : remove_center_of_mass, cosine_law,center_of_mass_v2
          use coordinateTransf, only: int_to_cart
          implicit none
          character(*,kind=1),intent (in)::filename
-         character(*,kind=1),intent (in):: inputCoord
+         character(*,kind=1),intent (in):: input_format
          integer (int32),intent (out)::test_failed
          integer (int32),intent (in)::file_output_number
          real (real64), allocatable ::ref1_temp0(:),ref2_temp0(:),cart(:)
@@ -781,7 +781,7 @@ contains
          allocate(ref1(3*natom1),ref2(3*natom2),mass(natom),mass0(natom),internal(xdim),internal0(xdim))
          allocate(ref1_temp0(3*natom1),ref2_temp0(3*natom2),cart(natom*3))
 
-         if (inputCoord == "Cartesian")then
+         if (input_format == "Cartesian")then
              szi = 3 * (natom1 + natom2)
          else
              szi = xdim
@@ -914,7 +914,7 @@ contains
                              ref2=ref2_temp0
                              ! (for CH3CN-He system: internal coordinates taken as spherical coords.)
 
-                             call int_to_cart(internal, szi, mass, ref1_temp0, ref2_temp0, xdim, natom1, natom2, inputCoord, cart)
+                             call int_to_cart(internal, szi, mass, ref1_temp0, ref2_temp0, xdim, natom1, natom2, input_format, cart)
 
                              call center_of_mass_v2(cart(1:3*natom1),cmA,mass(1:natom1),natom1)
                              call center_of_mass_v2(cart(1:3*natom1),cmA0,mass0(1:natom1),natom1)
@@ -997,7 +997,7 @@ contains
              write(file_output_number,*)
              write(file_output_number,*)"TEST NAME: Testing_AxisChanges"
              write(file_output_number,*)"System Features : Dimension/ Number of Atoms", xdim,"/",natom1,natom2
-             write(file_output_number,*)"Int2Cart = "//inputCoord
+             write(file_output_number,*)"Int2Cart = "//input_format
              write(file_output_number,*)"Number of Tests", counterCase
              write(file_output_number,*)"Failed Tests: ", test_failed, " out of",test_number
              write(file_output_number,*)
@@ -1005,6 +1005,67 @@ contains
 
      end subroutine axis_change_test
 
+    subroutine performance(ntest)
+
+        use mod_types, only : real64, int32
+        use helper_functions,only: get_pes_coordinates
+
+        implicit none
+        integer(int32), intent(in) :: ntest
+        integer(int32), parameter :: XDIM = 6
+        integer(int32), parameter :: ISOTOPE_COORDINATE_SIZE = 6
+        real(real64), parameter :: PII = DACOS(-1d0)
+        character (len = *, kind = 1), parameter :: ISOTOPE_COORDINATE_FORMAT = "Autosurf"
+        character (len = *, kind = 1), parameter :: PES_COORDINATE_FORMAT = "Autosurf"
+        character (len = *, kind = 1), parameter :: PATH_TO_FILE = "./test/6DCase/input.dat"
+
+        character (len = 15,kind=1)::str,str1
+        integer(int32):: i
+        real(real64), dimension(6) :: isotope_internal_coordinate
+        real(real64), dimension(6,ntest) :: isotope_internal_coordinate_array
+        real(real64), allocatable :: pes_internal_coordinate(:)
+        real(real64):: start, finish
+
+
+        isotope_internal_coordinate = [ 10d0,&
+                20d0*PII/180d0,&
+                30d0*PII/180d0,&
+                40d0*PII/180d0,&
+                50d0*PII/180d0,&
+                60d0*PII/180d0]
+
+        ! Return the coordinates of the calculated PES
+        call get_pes_coordinates(pes_internal_coordinate, &
+                isotope_internal_coordinate, &
+                ISOTOPE_COORDINATE_SIZE, &
+                XDIM, & ! System Dimension
+                ISOTOPE_COORDINATE_FORMAT, &
+                PES_COORDINATE_FORMAT, &
+                PATH_TO_FILE) ! File must contain the cartesian coordinates and masses of atoms for each molecule
+
+
+          call cpu_time(start)
+          do i=1,ntest
+              call get_pes_coordinates(pes_internal_coordinate, &
+                      isotope_internal_coordinate, &
+                      ISOTOPE_COORDINATE_SIZE, &
+                      XDIM, & ! System Dimension
+                      ISOTOPE_COORDINATE_FORMAT, &
+                      PES_COORDINATE_FORMAT, &
+                      PATH_TO_FILE)
+          end do
+          call cpu_time(finish)
+
+
+
+        write (str,'(F12.6)') 1000d0*(finish-start)
+        write (str1,'(I8)') ntest
+        write(*,*)
+        write(*,*)achar(27) // '[32m PERFORMANCE '  //achar(27)// '[0m' // "------------"&
+                // achar(27) //  '[35m' // str//" ms"  // achar(27) //'[0m' // " / size = "//str1&
+                // achar(27) //'[0m'
+        write(*,*)
+    end subroutine performance
 
 end module testing_auxiliar_functions
     
