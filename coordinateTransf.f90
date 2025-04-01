@@ -419,7 +419,7 @@ module coordinateTransf
     END SUBROUTINE Int_to_Cart
 
 
-    SUBROUTINE ZYZ_to_OutPut(internal,internal0,internal0_length,R_ZYZ,ref1,ref2&
+    SUBROUTINE zyz_to_output(internal,internal0,internal0_length,R_ZYZ,ref1,ref2&
                                 ,XDIM,natom1,natom2,outputCoord)
           
           IMPLICIT NONE
@@ -466,7 +466,7 @@ module coordinateTransf
 
           ! cart = cart_temp
               
-    END SUBROUTINE ZYZ_to_OutPut
+    END SUBROUTINE zyz_to_output
 
     SUBROUTINE Int_to_Cart_ZYZ(internal,XDIM,cart,mass,natom1,natom2,ref1_0,ref2_0)
 
@@ -478,7 +478,7 @@ module coordinateTransf
             ! * the second angle beta  (rotation around Y axis) is given by cos_beta
             ! * the otehr two, alpha and gamma are given in radians
         !********************************************************
-          use mathFunc
+          use math_functions,only: remove_center_of_mass,vec_to_mat2,molecular_rotation_zyz,mat_to_vec2
           IMPLICIT NONE
           integer,INTENT(IN) :: natom1,natom2,XDIM
           real*8,INTENT(IN) :: internal(XDIM),mass(natom1+natom2),ref1_0(natom1*3),ref2_0(natom2*3)
@@ -541,16 +541,16 @@ module coordinateTransf
           
           
           ! set new CM of fragment 1 at the origin
-          call rm_cmass(ref1,mass(1:natom1),natom1,natom1) 
-          call rm_cmass(ref2,mass(natom1+1:natom1+natom2),natom2,natom2) 
+          call remove_center_of_mass(ref1,mass(1:natom1),natom1,natom1)
+          call remove_center_of_mass(ref2,mass(natom1+1:natom1+natom2),natom2,natom2)
 
 
 
           call vec_to_mat2(ref1,ref_mat1,natom1)
           call vec_to_mat2(ref2,ref_mat2,natom2)
 
-          call MolecularRotation_ZYZ(ref_mat1,natom1,angles(1),angles(2),angles(3),rotarr1)
-          call MolecularRotation_ZYZ(ref_mat2,natom2,angles(4),angles(5),angles(6),rotarr2)
+          call molecular_rotation_zyz(ref_mat1,natom1,angles(1),angles(2),angles(3),rotarr1)
+          call molecular_rotation_zyz(ref_mat2,natom2,angles(4),angles(5),angles(6),rotarr2)
 
           
 
@@ -571,7 +571,7 @@ module coordinateTransf
     END SUBROUTINE Int_to_Cart_ZYZ
 
     SUBROUTINE Int_to_Cart_Spherical(internal,cart,mass,natom1,natom2,ref1_0)
-          use mathFunc
+          use math_functions,only: remove_center_of_mass
           IMPLICIT NONE
           integer,INTENT(IN) :: natom1,natom2
           real*8,INTENT(IN) :: internal(3),mass(natom1+natom2),ref1_0(natom1*3)
@@ -594,7 +594,7 @@ module coordinateTransf
           ! (for CH3CN-He system: internal coordinates taken as spherical coords.)
 
           ! set new CM of fragment 1 at the origin
-          call rm_cmass(ref1,mass(1:natom1),natom1,natom1) 
+          call remove_center_of_mass(ref1,mass(1:natom1),natom1,natom1)
           do i=1,3*natom1
           cart(i)=ref1(i)! Cartesian coordinates for the atoms in fragment 1
           enddo

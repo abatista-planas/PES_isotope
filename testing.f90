@@ -1,21 +1,19 @@
 PROGRAM TESTING
-
-        use helperFunc
-        use testingFunc
+        use mod_types, only : int32, real64        
+        use helper_functions
+        use testing_auxiliar_functions
  
         IMPLICIT NONE
-        integer :: natom1,natom2,natom,XDIM,i,k, test_failed(5),ft,fileOutNumber
-        real*8, allocatable :: ref1(:),ref2(:),mass(:),mass0(:),internal(:),internal0(:)
-        real*8 :: pii
-        real*8::distance(3)
-        INTEGER DATE_TIME (8)
-        CHARACTER (LEN = 10) BIG_BEN (3)
-
-
-        real*8, allocatable :: CasesRand(:,:)
-        real*8 :: test_dist(5)
-        integer :: counterCase, test_number
-        real*8::maxerr
+        integer (int32) :: natom1,natom2,natom,XDIM,i,k, test_failed(5),ft,fileOutNumber
+        real (real64), allocatable :: ref1(:),ref2(:),mass(:),mass0(:),internal(:),internal0(:)
+        real (real64) :: pii
+        real (real64)::distance(3)
+        integer (int32) DATE_TIME (8)
+        character (len = 10,kind=1) BIG_BEN (3)
+        real (real64), allocatable :: CasesRand(:,:)
+        real (real64) :: test_dist(5)
+        integer (int32) :: counterCase, test_number
+        real (real64)::maxerr
 
 
         test_number=100000
@@ -23,81 +21,28 @@ PROGRAM TESTING
         fileOutNumber=12
 
 
-
+        ! Create a report in './Testing_Output.txt'
         CALL DATE_AND_TIME (BIG_BEN (1), BIG_BEN (2), &
         BIG_BEN (3), DATE_TIME)
 
-        call FileChecking('./output/Testing_Output.txt',fileOutNumber)
+        call FileChecking('./Testing_Output.txt',fileOutNumber)
         REWIND(fileOutNumber)
 
         write(fileOutNumber,*)"******************************************************************************"
         write(fileOutNumber,*)  "Test Day and Time Record"
-        write(fileOutNumber,*)  "Month / Day / Year: ",DATE_TIME(2),"/",DATE_TIME(3),"/",DATE_TIME(1) 
-        write(fileOutNumber,*)  "Hr    / Min / Sec : ",DATE_TIME(5),":",DATE_TIME(6),":",DATE_TIME(7) 
+        write(fileOutNumber,*)  "Month / Day / Year: ",DATE_TIME(2),"/",DATE_TIME(3),"/",DATE_TIME(1)
+        write(fileOutNumber,*)  "Hr    / Min / Sec : ",DATE_TIME(5),":",DATE_TIME(6),":",DATE_TIME(7)
         
         call Test_Cart_to_Autosurf('./test/Cartesian/input_H2O.dat',"./test/Cartesian/2b.xyz",fileOutNumber)
 
+        call interatomic_distance_test("./test/2DCase/input.dat",2,"Autosurf","Autosurf", ft,fileOutNumber)
+        call interatomic_distance_test("./test/3DCase/input.dat",3,"Autosurf","Autosurf", ft,fileOutNumber)
+        call interatomic_distance_test("./test/4DCase/input.dat",4,"Autosurf","Autosurf", ft,fileOutNumber)
+        call interatomic_distance_test("./test/5DCase/input.dat",5,"Autosurf","Autosurf", ft,fileOutNumber)
+        call interatomic_distance_test("./test/6DCase/input.dat",6,"Autosurf","Autosurf", ft,fileOutNumber)
 
-
-        call Testing_InteratomicDistances("./test/2DCase/input.dat",2,"Autosurf","Autosurf", ft,fileOutNumber)
-        call Testing_InteratomicDistances_v2("./test/2DCase/input.dat",2,"Autosurf","Autosurf", ft,fileOutNumber)
-        !call Testing_InteratomicDistances("./test/3DCase/input.dat",3,"Spherical","Autosurf", ft,fileOutNumber)
-        !call Testing_InteratomicDistances("./test/3DCase/input.dat",3,"Autosurf","Autosurf", ft,fileOutNumber)
-        ! call Testing_InteratomicDistances("./test/4DCase/input.dat",4,"Autosurf","Autosurf", ft,fileOutNumber)
-        ! call Testing_InteratomicDistances("./test/5DCase/input.dat",5,"Autosurf","Autosurf", ft,fileOutNumber)
-        ! call Testing_InteratomicDistances("./test/6DCase/input.dat",6,"Autosurf","Autosurf", ft,fileOutNumber)
-     
-
-
-        
-        ! call Testing_AxisChanges("2DCase/input.dat",2,ft,fileOutNumber)
-        ! call Testing_AxisChanges("3DCase/input.dat",2,ft,fileOutNumber)
-        ! call Testing_AxisChanges("4DCase/input.dat",2,ft,fileOutNumber)
-        ! call Testing_AxisChanges("5DCase/input.dat",2,ft,fileOutNumber)
-        ! call Testing_AxisChanges("6DCase/input.dat",2,ft,fileOutNumber)
 
         close(fileOutNumber)
-
-!  XDIM = 5
-
-
-!  ALLOCATE(CasesRand(XDIM,test_number + 5000))
- 
- 
-
-!  call random_seed()
-!  call random_number(CasesRand)
-
- 
-
-
- 
-!  Write(*,*)DACOS(1d0 - 1d-16),datan2(1d-16,1d0)
-
-!  Call Same_Masses_Test(CasesRand,XDIM,test_number,counterCase,test_failed,maxerr)
-
-
-
-!         write(*,*)
-!         write(*,*)"TEST NAME: Same Masses same angle conversion"
-!         write(*,*)"Int2Cart = ",0
-!         write(*,*)"Number of Tests", counterCase
-!         write(*,*)"MAX err_test",maxerr
-!         write(*,*)"Failed Tests: ", test_failed, " out of",test_number 
-!         write(*,*)
-        
-
-   
- !CALL CosineLaw_Test(CasesRand,test_number,mass,mass0,natom1,natom2,ref1,ref2,XDIM,ifun,counterCase,test_failed,maxerr)
-
- ! write(*,*)
- !       write(*,*)"Cosine Law in the a Molecule A Axis"
- !       write(*,*)"System Features : Dimension/ Number of Atoms", XDIM,"/",natom1,natom2
- !       write(*,*)"Int2Cart = ",ifun
- !       write(*,*)"Number of Tests", counterCase
- !       write(*,*)"MAX err_test",maxerr
- !       write(*,*)"Failed Tests: ", test_failed, " out of",test_number 
- !       write(*,*)
 
 END PROGRAM TESTING
 
@@ -115,16 +60,16 @@ END PROGRAM TESTING
 !   use helperFunc
 !   IMPLICIT NONE
   
-!   Integer,INTENT(IN) ::test_number,XDIM
-!   integer :: nc
-!   real*8 ::internal(XDIM),internal0(XDIM),internal0_BiSph(XDIM)
+!   integer (int32),INTENT(IN) ::test_number,XDIM
+!   integer (int32) :: nc
+!   real (real64) ::internal(XDIM),internal0(XDIM),internal0_BiSph(XDIM)
  
-!   real*8 :: pii,passingThrough
-!   real*8,INTENT(IN) :: CasesRand(XDIM,test_number+5000)
-!   real*8 :: Max_test_dist,test_dist(5),err
-!   real*8::err_test,threshold
-!   integer,INTENT(INOUT) ::counterCase,test_failed
-!   real*8,INTENT(INOUT):: maxerr
+!   real (real64) :: pii,passingThrough
+!   real (real64),INTENT(IN) :: CasesRand(XDIM,test_number+5000)
+!   real (real64) :: Max_test_dist,test_dist(5),err
+!   real (real64)::err_test,threshold
+!   integer (int32),INTENT(INOUT) ::counterCase,test_failed
+!   real (real64),INTENT(INOUT):: maxerr
 !   pii=dacos(-1d0) 
 !   err = 1d-7
 !   counterCase = 0
@@ -213,19 +158,19 @@ END PROGRAM TESTING
 !  use helperFunc
 !  IMPLICIT NONE
 !  
-!  Integer,INTENT(IN) ::ifun,test_number,natom1,natom2,XDIM
-!  integer :: nc,internalFunction
-!  real*8 ::internal(XDIM),internal0(XDIM),internal0_BiSph(XDIM)
-!  real*8,INTENT(IN):: ref1(3*natom1),ref2(3*natom2),mass(natom1+natom2),mass0(natom1+natom2)
-!  real*8 :: pii,passingThrough
-!  real*8,INTENT(IN) :: CasesRand(XDIM,test_number+5000)
-!  real*8 :: Max_test_dist,test_dist(5),err
-!  real*8::err_test,threshold
-!  integer,INTENT(INOUT) ::counterCase,test_failed
-!  real*8,INTENT(INOUT):: maxerr
+!  integer (int32),INTENT(IN) ::ifun,test_number,natom1,natom2,XDIM
+!  integer (int32) :: nc,internalFunction
+!  real (real64) ::internal(XDIM),internal0(XDIM),internal0_BiSph(XDIM)
+!  real (real64),INTENT(IN):: ref1(3*natom1),ref2(3*natom2),mass(natom1+natom2),mass0(natom1+natom2)
+!  real (real64) :: pii,passingThrough
+!  real (real64),INTENT(IN) :: CasesRand(XDIM,test_number+5000)
+!  real (real64) :: Max_test_dist,test_dist(5),err
+!  real (real64)::err_test,threshold
+!  integer (int32),INTENT(INOUT) ::counterCase,test_failed
+!  real (real64),INTENT(INOUT):: maxerr
 !
-!  real*8::R_err,R0_err,theta1_err,theta10_err
-!  real*8::cmA(3),cmA0(3),cmB(3),cmB0(3),O(3),O0(3),response1(6),cart(6*3)
+!  real (real64)::R_err,R0_err,theta1_err,theta10_err
+!  real (real64)::cmA(3),cmA0(3),cmB(3),cmB0(3),O(3),O0(3),response1(6),cart(6*3)
 !
 !
 !  pii=acos(-1d0) 

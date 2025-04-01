@@ -1,20 +1,20 @@
-module mathFunc
-  
+module math_functions
+    use mod_types, only : int32, real64
     contains
   
     ! given the the three catersian points of a triangule
     ! this function returns all interior angles and the side lengths 
-    subroutine CosineLaw(A,B,C,response)
-        IMPLICIT NONE
-        real*8,INTENT(IN) ::A(3),B(3),C(3)
-        real*8,INTENT(INOUT) ::response(6)
-        real*8 ::AB,BC,AC,cos_a,cos_b,cos_c
+    subroutine cosine_law(A,B,C,response)
+        implicit none
+        real (real64),intent(in) ::A(3),B(3),C(3) !triangle sides
+        real (real64),intent(inout) ::response(6)
+        real (real64) ::AB,BC,AC,cos_a,cos_b,cos_c
     
         !Respose will return the triangule measurements AB,AC,BC, and the angles CAB, ABC, BCA
     
-        AB = NORM2(B-A)
-        AC = NORM2(C-A)
-        BC = NORM2(B-C)
+        AB = norm2(B-A)
+        AC = norm2(C-A)
+        BC = norm2(B-C)
     
     
         response(1) = AB
@@ -31,17 +31,17 @@ module mathFunc
         response(6) = cos_c
     
         return
-    end subroutine CosineLaw
+    end subroutine cosine_law
   
-    SUBROUTINE MolecularRotation_ZYZ(arr,N,alpha,beta,gamma,rotarr)
-        IMPLICIT NONE
-        integer,INTENT(IN) ::  N
+    subroutine molecular_rotation_zyz(arr,array_size,alpha,beta,gamma,rotarr)
+        implicit none
+        integer (int32),intent(in) ::  array_size
         
-        real*8,INTENT(IN) ::  arr(3,N)
-        real*8,INTENT(INOut) ::  rotarr(3,N)
-        real*8,INTENT(IN):: alpha,gamma,beta
+        real (real64),intent(in) ::  arr(3,array_size)
+        real (real64),intent(inout) ::  rotarr(3,array_size)
+        real (real64),intent(in):: alpha,gamma,beta
     
-        real*8::a,b,g,ca,cb,cg,sa,sb,sg,U_rot(3,3)
+        real (real64)::a,b,g,ca,cb,cg,sa,sb,sg,U_rot(3,3)
   
     
         a = alpha
@@ -72,35 +72,33 @@ module mathFunc
         U_rot(3,2)=sb*sg
   
         
-        call rotmol2 (N, arr, rotarr, U_rot)
+        call rotate_molecule_v2 (array_size, arr, rotarr, U_rot)
         
         
         
-    END SUBROUTINE MolecularRotation_ZYZ
+    end subroutine molecular_rotation_zyz
   
-    SUBROUTINE InterAtomicDistance(arr,N,Distance)
-      IMPLICIT NONE
-      integer,INTENT(IN) ::  N
-      Integer::count,i,j
-      real*8,INTENT(IN) ::  arr(3,N)
-      real*8,INTENT(INOut) ::  Distance(N*(N-1)/2)
-      real*8 :: pii,xij,yij,zij
-      
-      pii=dacos(-1d0) 
+    subroutine interatomic_distance(arr,array_size,distance)
+      implicit none
+      integer (int32),intent(in) ::  array_size
+      integer (int32)::count,i,j
+      real (real64),intent(in) ::  arr(3,array_size)
+      real (real64),intent(inout) ::  distance(array_size*(array_size-1)/2)
+      real (real64) :: xij,yij,zij
   
       count=0;
   
   
   
   
-      do i=1,N-1
-          do j=i+1,N
+      do i=1,array_size-1
+          do j=i+1,array_size
   
               count = count + 1;
               xij = (arr(1,i)-arr(1,j))**2
               yij = (arr(2,i)-arr(2,j))**2
               zij = (arr(3,i)-arr(3,j))**2
-              Distance(count) = DSQRT(xij + yij + zij)
+              distance(count) = DSQRT(xij + yij + zij)
           
   
           enddo
@@ -108,44 +106,44 @@ module mathFunc
   
   
   
-    END SUBROUTINE InterAtomicDistance
+    end subroutine interatomic_distance
   
-    integer*2 function cmp_function( a, b )
-        INTEGER*4 a, b
-        if ( a .lt. b ) compar = -1
-        if ( a .eq. b ) compar = 0
-        if ( a .gt. b ) compar = 1
+    integer (int32) function cmp_function( a, b )
+        integer (int32) a, b
+        if ( a < b ) compar = -1
+        if ( a == b ) compar = 0
+        if ( a > b ) compar = 1
         return
     end
   
-    SUBROUTINE ComparedDistance(Distance1,Distance2,N,result)
-        IMPLICIT NONE
+    subroutine compared_distance(distance1,distance2,array_size,result)
+        implicit none
     
-        integer,INTENT(IN) ::  N
-        real*8,INTENT(IN) ::  Distance1(N),Distance2(N)
-        real*8 ::  D1(N),D2(N)
-        real*8,INTENT(OUT)::result(2)
-        real*8::sr1,sr2
-        integer :: i
+        integer (int32),intent(in) ::  array_size
+        real (real64),intent(in) ::  distance1(array_size),distance2(array_size)
+        real (real64) ::  D1(array_size),D2(array_size)
+        real (real64),intent(out)::result(2)
+        real (real64)::sr1,sr2
+        integer (int32) :: i
   
         
         result=0d0
   
-        D1 = Distance1
-        D2 = Distance2
-        call sort_pick(D1,N) 
-        call sort_pick(D2,N) 
+        D1 = distance1
+        D2 = distance2
+        call sort_pick(D1,array_size) 
+        call sort_pick(D2,array_size) 
         
-        do i = 1,N
+        do i = 1,array_size
             result(1) = result(1) + (D1(i)-D2(i))**2
         enddo
         result(1) = DSQRT(result(1))
+        
         !Global difference
-  
   
         sr1 = 0d0
         sr2 = 0d0
-        do i = 1,N
+        do i = 1,array_size
         
             sr1  = sr1 + D1(i)
             sr2  = sr2 + D2(i)
@@ -154,19 +152,18 @@ module mathFunc
         result(2)=DABS(sr1-sr2)
   
   
-    END SUBROUTINE ComparedDistance
+    end subroutine compared_distance
   
-    SUBROUTINE sort_pick(arr,N) 
+    subroutine sort_pick(arr,array_size) 
         
-        IMPLICIT NONE 
-        INTEGER, INTENT(IN) :: N
-        REAL*8, DIMENSION(:), INTENT(INOUT) :: arr(N) !Sorts an array arr into ascending numerical order, by straight insertion. arr is replaced on output by its sorted rearrangement. 
-        INTEGER :: i,j 
-        REAL*8 :: a 
-        
-  
-        
-        do j=2,N 
+        implicit none 
+        integer (int32), intent(in) :: array_size
+        !Sorts an array arr into ascending numerical order, by straight insertion. arr is replaced on output by its sorted rearrangement. 
+        real (real64), dimension(:), intent(inout) :: arr(array_size)
+        integer (int32) :: i,j 
+        real (real64) :: a 
+
+        do j=2,array_size 
             a=arr(j) 
             do i=j-1,1,-1 !Pick out each element in turn. Look for the place to insert it. 
                 if (arr(i) <= a) exit 
@@ -174,44 +171,37 @@ module mathFunc
             end do 
             arr(i+1)=a !Insert it. 
         end do 
-    END SUBROUTINE sort_pick
+    end subroutine sort_pick
   
-    SUBROUTINE Print_Vector(vec,N,str)
-        IMPLICIT NONE
-        integer,INTENT(IN) ::  N
-        real*8,INTENT(IN) ::  vec(3,N)
-        character(len = 20) ,INTENT(IN) ::  str
-        integer :: i
+    subroutine print_vector(vec,array_size,str)
+        implicit none
+        integer (int32),intent(in) ::  array_size
+        real (real64),intent(in) ::  vec(3,array_size)
+        character(len = 20,kind = 1) ,intent(in) ::  str
+        integer (int32) :: i
   
         write(*,*) "******* Vector Printing: "," ************"
         write(*,*) "******* ",str," ************"
-        do i = 1,N
+        do i = 1,array_size
             write(*,*)vec(:,i)
         enddo
   
-        write(*,*) "******* End Printing ************"
+        write(*,*) "******* end Printing ************"
   
-    END SUBROUTINE Print_Vector
+    end subroutine print_vector
   
-    subroutine Find_EulerAngles(natom,cart_ref1,cart_mat1,masses,alpha,beta,gamma)
+    subroutine find_euler_angles(natom,cart_ref1,cart_mat1,masses,alpha,beta,gamma)
   
-        IMPLICIT NONE
+        implicit none
   
-        integer,INTENT(IN) :: natom
-        real*8,INTENT(OUT):: alpha,beta,gamma
-        real*8,INTENT(IN):: masses(natom),cart_ref1(3,natom),cart_mat1(3,natom)
-        integer :: ierr,i
-        real*8 :: U_rot(3,3),quat(4),threshold,U33
+        integer (int32),intent(in) :: natom
+        real (real64),intent(out):: alpha,beta,gamma
+        real (real64),intent(in):: masses(natom),cart_ref1(3,natom),cart_mat1(3,natom)
+        integer (int32) :: ierr,i
+        real (real64) :: U_rot(3,3),quat(4),threshold,U33
       !!! ----------------------------------------------------------------------------------
       !!! 4) once the geometry is in the proper frame, find the corresponding Euler angles:
       !!! ----------------------------------------------------------------------------------
-      ! do i=1,natom
-      !   write(*,*)"cart_ref1",cart_ref1(:,i)
-      ! end do 
-      ! do i=1,natom
-      !   write(*,*)"cart_mat1",cart_mat1(:,i)
-      ! end do 
-      
 
       call qtrfit(natom,cart_ref1,cart_mat1,masses,quat,U_rot,ierr)
   
@@ -229,12 +219,7 @@ module mathFunc
   
       
       beta=dacos(U33)
-      
-      ! do i=1,3
-      !   write(*,*)"U_rot",U_rot(:,i)
-      ! end do 
 
-      !write(*,*)"Condition",U33>threshold,U33 <-1d0*threshold
       
       if(U33>threshold)then
         gamma =datan2(-U_rot(1,2),U_rot(1,1))
@@ -246,16 +231,14 @@ module mathFunc
         alpha=datan2(U_rot(2,3),U_rot(1,3))
         gamma=datan2(U_rot(3,2),-U_rot(3,1))
       endif
-  
-     !write(*,*)"Angles",alpha,beta,gamma
-  
+
       return
-    end subroutine Find_EulerAngles
+    end subroutine find_euler_angles
   
-    subroutine cmass(cart,cm,mass,natom,natom2)
-      IMPLICIT NONE
-      integer :: k,kp,natom,natom2
-      real*8 :: mass(natom),cart(natom*3),mtot,cm(3)
+    subroutine center_of_mass(cart,cm,mass,natom,natom2)
+      implicit none
+      integer (int32) :: k,kp,natom,natom2
+      real (real64) :: mass(natom),cart(natom*3),mtot,cm(3)
       mtot=0d0
       do k=natom-natom2+1,natom
         mtot=mtot+mass(k)
@@ -268,12 +251,12 @@ module mathFunc
       enddo
       cm=cm/mtot
       return
-    end subroutine cmass
+    end subroutine center_of_mass
 
-    subroutine cmass2(cart,cm,mass,natoms)
-      IMPLICIT NONE
-      integer :: k,kp,natoms
-      real*8 :: mass(natoms),cart(natoms*3),mtot,cm(3)
+    subroutine center_of_mass_v2(cart,cm,mass,natoms)
+      implicit none
+      integer (int32) :: k,kp,natoms
+      real (real64) :: mass(natoms),cart(natoms*3),mtot,cm(3)
       mtot=0d0
       do k=1,natoms
         mtot=mtot+mass(k)
@@ -286,12 +269,12 @@ module mathFunc
       enddo
       cm=cm/mtot
       return
-    end subroutine cmass2
+    end subroutine center_of_mass_v2
 
-    subroutine rm_cmass(cart,mass,natom,natom1)
-      IMPLICIT NONE
-      integer :: k,kp,natom,natom1
-      real*8 :: mass(natom),cart(natom*3),mtot,cmass1(3)
+    subroutine remove_center_of_mass(cart,mass,natom,natom1)
+      implicit none
+      integer (int32) :: k,kp,natom,natom1
+      real (real64) :: mass(natom),cart(natom*3),mtot,cmass1(3)
       mtot=0d0
       do k=1,natom1
         mtot=mtot+mass(k)
@@ -310,12 +293,12 @@ module mathFunc
         enddo
       enddo
       return
-    end subroutine rm_cmass
+    end subroutine remove_center_of_mass
 
     subroutine vec_to_mat2(cart_perms,cart_mat,natom)
-      IMPLICIT NONE
-      integer :: k,kp,natom
-      real*8 :: cart_perms(3*natom),cart_mat(3,natom)
+      implicit none
+      integer (int32) :: k,kp,natom
+      real (real64) :: cart_perms(3*natom),cart_mat(3,natom)
       do k=1,natom
         do kp=1,3
             cart_mat(kp,k)=cart_perms((k-1)*3+kp)
@@ -325,9 +308,9 @@ module mathFunc
     end subroutine vec_to_mat2
   
     subroutine mat_to_vec2(cart_mat,cart_perms,natom)
-      IMPLICIT NONE
-      integer :: k,kp,natom
-      real*8 :: cart_perms(3*natom),cart_mat(3,natom)
+      implicit none
+      integer (int32) :: k,kp,natom
+      real (real64) :: cart_perms(3*natom),cart_mat(3,natom)
       do k=1,natom
         do kp=1,3
             cart_perms((k-1)*3+kp)=cart_mat(kp,k)
@@ -337,29 +320,29 @@ module mathFunc
     end subroutine mat_to_vec2
   
   
-    SUBROUTINE rotmol2 (n, x, molrot, u)
-      IMPLICIT None
+    subroutine rotate_molecule_v2 (array_size, x, molrot, u)
+      implicit none
   
-      INTEGER,INTENT(IN) ::n
-      real*8,INTENT(IN):: x(3, n)
-      real*8,INTENT(Out):: molrot(3, n)
-      real*8,INTENT(IN):: u(3, 3)
-      real*8:: mol(3, n),urot(3, 3)
-      INTEGER:: i
+      integer (int32),intent(in) ::array_size
+      real (real64),intent(in):: x(3, array_size)
+      real (real64),intent(out):: molrot(3, array_size)
+      real (real64),intent(in):: u(3, 3)
+      real (real64):: mol(3, array_size),urot(3, 3)
+      integer (int32):: i
   
       urot = u
       mol  = x
   
-      DO i = 1, n
+      DO i = 1, array_size
         molrot(1,i) = urot(1, 1) * mol(1, i) + urot(1, 2) * mol(2, i) + urot(1, 3) * mol(3, i)
         molrot(2,i) = urot(2, 1) * mol(1, i) + urot(2, 2) * mol(2, i) + urot(2, 3) * mol(3, i)
         molrot(3,i) = urot(3, 1) * mol(1, i) + urot(3, 2) * mol(2, i) + urot(3, 3) * mol(3, i)
   
       enddo
   
-      RETURN
-    end subroutine  rotmol2
+      return
+    end subroutine  rotate_molecule_v2
 
   
-end module mathFunc
+end module math_functions
     
