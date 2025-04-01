@@ -61,7 +61,7 @@ module helper_functions
 
     SUBROUTINE MolecularDistance_Comapare(arr1,ref1,ref2,N1,N2,internal0,xdim,Distance)
         use math_functions,only: interatomic_distance,molecular_rotation_zyz ,compared_distance
-        use coordinateTransf
+        use coordinateTransf,only:internal0_to_angles_zyz
         implicit none
         integer(int32), intent(in) ::  N1,N2,xdim
         real(real64), intent(in) ::  internal0(xdim),arr1(3,N1+N2),ref1(3,N1),ref2(3,N2)
@@ -79,7 +79,7 @@ module helper_functions
         ref2_temp=ref2
   
   
-        call Internal0_to_anglesZYZ(internal0_temp,xdim,angles)
+        call internal0_to_angles_zyz(internal0_temp,xdim,angles)
   
   
             
@@ -120,7 +120,7 @@ module helper_functions
        
         use math_functions,only: find_euler_angles, remove_center_of_mass,vec_to_mat2,mat_to_vec2, rotate_molecule_v2,&
                                  center_of_mass
-        use coordinateTransf
+        use coordinateTransf,only: euler_angles_to_autosurf
 
         implicit none
   
@@ -272,7 +272,7 @@ module helper_functions
                     ! This test calculate an array d1 and d0 of all interatomic distance of all atoms taken in pairs for both 
                     ! cartesian configurations   and print the sum of abs(d1-d0)
               
-                    call EulerAngles_2_Autosurf(xdim,R_ZYZ,inter0_test)
+                    call euler_angles_to_autosurf(xdim,R_ZYZ,inter0_test)
                     call  MolecularDistance_Comapare(tcf,cart_ref1,cart_ref2,natom1,natom2,&
                                                       inter0_test,xdim,distance_arr_test)
                     td(1:2) = distance_arr_test
