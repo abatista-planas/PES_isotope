@@ -1,5 +1,18 @@
 ## Introduction
+The study of intermolecular forces is essential for predicting and
+understanding the dynamics of molecular systems, which can be relevant to
+numerous scientific disciplines, including atmospheric chemistry,
+environmental chemistry, and astrochemistry. Recent discoveries of complex
+organic and especially chiral molecules in the interstellar medium have drawn
+a lot of interest, and theory and simulation are important partners to
+experimental measurements in these efforts. For modeling purposes, the study of molecular 
+interactions is essential and can be better understood by constructing a potential energy surface (PES) 
+for the system of interest. The PES construction starts computing ab-initio energy points for a list of geometrical configurations (tipically the intermolecular distance R, 
+and a set the angles that define the relative orientation of the monomers). Every point is very time and computational consuming
 
+Isotopes are molecules that have same atoms but at least one atom different in the number of neutrons. Since the 
+neutrons has no charge, if the bond length in both molecules remain constant, the electric field remain invariant. For example
+the system H$_2$O
 ## Features
 
 
