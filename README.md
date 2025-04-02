@@ -75,6 +75,13 @@ Using nox, test the app against Python versions `3.9`, `3.10`, `3.11`, and `3.12
 
 
 
-## Acknowledgments
+## Credits
+Research Group:
+- Adrian Batista-Planas
+- Ernesto Quintas-Sanchez
+- Richard Dawes (Advisor)
+
+This work was partially supported by the Missouri University of Science and Technology’s Kummer Institute for Student Success and the United States Department of Energy (DOE), grant numbers DE-SC0019740 and DE-SC0025420.
+
 
 
