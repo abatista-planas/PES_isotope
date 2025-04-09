@@ -27,8 +27,8 @@ ReadmeAI requires Python 3.9 or higher, and one of the following installation me
 |--------------------------------------|----------------------------------|
 | • Fortran Compiler                   | Core runtime                     |
 | • Make (optional)                    | file package manager             |
-| • OpenMP (optional)                  | file package manager             |
-
+| • OpenMP (optional)                  | parallel feature                 |
+| • MPI (optional)                     | parallel feature                 |
 
 ### Usage
 
