@@ -17,11 +17,12 @@ neutrons has no charge, if the bond length in both molecules remain constant, th
 - Works for any pair of molecules independenly of symmetry's groups.
 - The user can enter the coordinate in the Autosurf, Spherical, and Bi-shperical  or define their own custom internal coodinate system by providing the conversion to cartesian coordinates
 - The software can be run in parallel 
-## Getting Started
+- Fortran  
 
+## Fortran users
 ### Prerequisites
 
-ReadmeAI requires Python 3.9 or higher, and one of the following installation methods:
+
 
 | Requirement                          | Details                          |
 |--------------------------------------|----------------------------------|
