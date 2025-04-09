@@ -11,11 +11,12 @@ for the system of interest. The PES construction starts computing ab-initio ener
 and a set the angles that define the relative orientation of the monomers). Every point is very time and computational consuming
 
 Isotopes are molecules that have same atoms but at least one atom different in the number of neutrons. Since the 
-neutrons has no charge, if the bond length in both molecules remain constant, the electric field remain invariant. For example
-the system H$_2$O
+neutrons has no charge, if the bond length in both molecules remain constant, the electric field remain invariant. However, the change of mass could change the center of mass and/or the way the principal axis are choseen. To be able to utilize the already computed PES its necessary find a mapping from the the new isosope coordinates to the PES system.
+
 ## Features
-
-
+- Works for any pair of molecules independenly of symmetry's groups.
+- The user can enter the coordinate in the Autosurf, Spherical, and Bi-shperical  or define their own custom internal coodinate system by providing the conversion to cartesian coordinates
+- The software can be run in parallel 
 ## Getting Started
 
 ### Prerequisites
@@ -24,53 +25,61 @@ ReadmeAI requires Python 3.9 or higher, and one of the following installation me
 
 | Requirement                          | Details                          |
 |--------------------------------------|----------------------------------|
-| • [Python][python-link] ≥3.9         | Core runtime                     |
-| **Installation Method** (choose one) |                                  |
-| • [pip][pip-link]                    | Default Python package manager   |
-| • [pipx][pipx-link]                  | Isolated environment installer   |
-| • [uv][uv-link]                      | High-performance package manager |
-| • [docker][docker-link]              | Containerized environment        |
+| • Fortran Compiler                   | Core runtime                     |
+| • Make (optional)                    | file package manager             |
 
 
 
 ### Usage
 
 
-```sh
-❯ readmeai --api openai -o readmeai-openai.md -r https://github.com/eli64s/readme-ai
+```fortran
+program example
+
+    use mod_types, only : real64, int32
+    use helper_functions,only: get_pes_coordinates
+    implicit none
+
+    integer(int32), parameter :: XDIM = 6
+    integer(int32), parameter :: ISOTOPE_COORDINATE_SIZE = 6
+    character (len = *, kind = 1), parameter :: ISOTOPE_COORDINATE_FORMAT = "Autosurf"
+    character (len = *, kind = 1), parameter :: PES_COORDINATE_FORMAT = "Autosurf"
+    character (len = *, kind = 1), parameter :: PATH_TO_FILE = "./test/6DCase/input.dat"
+
+    integer(int32), parameter :: dataset_size = 10
+    integer(int32):: i
+    real(real64), dimension(6) :: isotope_internal_coordinate
+    real(real64), dimension(6,dataset_size) :: isotope_internal_coordinate_array
+    real(real64), allocatable :: pes_internal_coordinate(:)
+
+   
+    isotope_internal_coordinate = [ 10d0,&            ! R
+                                    0.349065850d0,&   ! beta 1
+                                    0.523598776d0,&   ! beta 2
+                                    0.698131701d0,&   ! alpha
+                                    0.872664626d0,&   ! gamma 1 
+                                    1.047197551d0]    ! gamma 2
+
+    ! Return the coordinates of the calculated PES
+    call get_pes_coordinates(pes_internal_coordinate, &
+            isotope_internal_coordinate, &
+            ISOTOPE_COORDINATE_SIZE, &
+            XDIM, & ! System Dimension
+            ISOTOPE_COORDINATE_FORMAT, &
+            PES_COORDINATE_FORMAT, &
+            PATH_TO_FILE) ! File must contain the cartesian coordinates and masses of atoms for each molecule
+
+
+
+end program example
 ```
 
-> [!IMPORTANT]
-> The default model set is `gpt-3.5-turbo`, offering the best balance between cost and performance.When using any model from the `gpt-4` series and up, please monitor your costs and usage to avoid unexpected charges.
-
-
-```sh
-❯ readmeai --repository /users/username/projects/myproject --api openai
-```
 
 
 ### Testing
-
-<!-- #### Using `pytest` [![pytest][pytest-shield]][pytest-link] -->
-
-The [pytest][pytest-link] and [nox][nox-link] frameworks are used for development and testing.
-
-Install the dependencies with uv:
-
-```sh
-❯ uv pip install --dev --group test --all-extras
-```
-
-Run the unit test suite using Pytest:
-
+Perform a test for several different systems symmetries and system dimmensions 
 ```sh
 ❯ make test
-```
-
-Using nox, test the app against Python versions `3.9`, `3.10`, `3.11`, and `3.12`:
-
-```sh
-❯ make test-nox
 ```
 
 
