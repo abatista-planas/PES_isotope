@@ -1,6 +1,6 @@
 program comprenhensive_unit_test
 
-    use mod_types, only : int32, real64
+    use iso_fortran_env, only: int32, real64
     use helper_functions, only : file_checking
     use testing_auxiliar_functions, only : test_cart_to_autosurf, interatomic_distance_test, performance
 

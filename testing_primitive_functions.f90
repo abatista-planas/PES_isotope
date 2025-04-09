@@ -1,5 +1,5 @@
 module testing_auxiliar_functions
-    use mod_types, only : int32, real64
+    use iso_fortran_env, only: int32, real64
 contains
 
     subroutine check_cartesian_frames(  ptos, &

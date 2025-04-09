@@ -1,5 +1,5 @@
 module helper_functions
-    use mod_types, only : int32, real64
+    use iso_fortran_env, only: int32, real64
 contains
 
     subroutine file_checking(fileName, num)
