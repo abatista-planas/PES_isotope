@@ -27,7 +27,7 @@ ReadmeAI requires Python 3.9 or higher, and one of the following installation me
 |--------------------------------------|----------------------------------|
 | • Fortran Compiler                   | Core runtime                     |
 | • Make (optional)                    | file package manager             |
-
+| • OpenMP (optional)                  | file package manager             |
 
 
 ### Usage
@@ -77,12 +77,10 @@ end program example
 
 
 ### Testing
-Perform a test for several different systems symmetries and system dimmensions 
+Perform a test for several systems composed by different symmetries and system dimmensions 
 ```sh
 ❯ make test
 ```
-
-
 
 ## Credits
 Research Group:
